@@ -100,7 +100,7 @@ pub struct ColorSpace {
     transform_fn: TransformFn,
 }
 impl ColorSpace {
-    const fn new(
+    pub const fn new(
         primaries: RGBPrimaries,
         white_point: WhitePoint,
         transform_fn: TransformFn,
@@ -150,22 +150,26 @@ pub mod color_spaces {
         WhitePoint::D65,
         TransformFn::SRGB_Gamma,
     );
-    /// ACEScg is a linear encoding in AP1 primaries.
+    /// ACEScg is a linear encoding in AP1 primaries with a D60 whitepoint.
     pub const ACES_CG: ColorSpace = ColorSpace::linear(RGBPrimaries::AP1, WhitePoint::D60);
-    /// ACES2065-1 is a linear encoding in AP0 primaries.
+    /// ACES2065-1 is a linear encoding in AP0 primaries with a D60 whitepoint.
     pub const ACES2065_1: ColorSpace = ColorSpace::linear(RGBPrimaries::AP0, WhitePoint::D60);
-    /// CIE RGB
+    /// CIE RGB is the Original Gangster of RGB spaces.
     pub const CIE_RGB: ColorSpace = ColorSpace::linear(RGBPrimaries::CIE_RGB, WhitePoint::E);
-    /// BT.2020 is a linear encoding in BT.2020 primaries
+    /// BT.2020 is a linear encoding in BT.2020 primaries with a D65 white point
     pub const BT_2020: ColorSpace = ColorSpace::linear(RGBPrimaries::BT_2020, WhitePoint::D65);
+    /// Oklab is a non-linear encoding in XYZ primaries with a D65 whitepoint
+    pub const OKLAB: ColorSpace =
+        ColorSpace::new(RGBPrimaries::CIE_XYZ, WhitePoint::D65, TransformFn::Oklab);
 
-    pub const ALL_COLOR_SPACES: [ColorSpace; 6] = [
+    pub const ALL_COLOR_SPACES: [ColorSpace; 7] = [
         color_spaces::BT_709,
         color_spaces::SRGB,
         color_spaces::ACES_CG,
         color_spaces::ACES2065_1,
         color_spaces::CIE_RGB,
         color_spaces::BT_2020,
+        color_spaces::OKLAB,
     ];
 }
 
@@ -176,10 +180,19 @@ pub struct Color {
     pub color_space: ColorSpace,
 }
 impl Color {
-    pub fn new(value: Vec3, space: ColorSpace) -> Self {
+    pub fn new(x: FType, y: FType, z: FType, space: ColorSpace) -> Self {
         Self {
-            value,
+            value: Vec3::new(x, y, z),
             color_space: space,
+        }
+    }
+    pub fn space(&self) -> ColorSpace {
+        self.color_space
+    }
+    pub fn srgb(srgb_value: Vec3) -> Self {
+        Self {
+            value: srgb_value,
+            color_space: color_spaces::SRGB,
         }
     }
     pub fn to(&self, space: ColorSpace) -> Color {
@@ -313,5 +326,21 @@ mod test {
                 crate::cat::LMSConeSpace::VonKries,
             )
         );
+    }
+
+    #[test]
+    fn oklab_test() {
+        let xyz = Color::new(
+            1.0,
+            0.0,
+            0.0,
+            ColorSpace::new(RGBPrimaries::CIE_XYZ, WhitePoint::D65, TransformFn::NONE),
+        );
+        let oklab = xyz.to(spaces::OKLAB);
+        println!(
+            "conversion {:?}",
+            ColorConversion::new(xyz.space(), oklab.space())
+        );
+        println!("{:?} - {:?}", xyz, oklab);
     }
 }

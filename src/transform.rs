@@ -4,6 +4,7 @@ use crate::{color::TransformFn, FType, Mat3, Vec3};
 pub struct ColorTransform(for<'r> fn(&'r mut Vec3));
 impl ColorTransform {
     pub fn new(src_transform: TransformFn, dst_transform: TransformFn) -> Option<Self> {
+        println!("transform from {:?} to {:?}", src_transform, dst_transform);
         use crate::transform::*;
         Some(Self(match (src_transform, dst_transform) {
             (TransformFn::SRGB_Gamma, TransformFn::NONE) => {
@@ -56,13 +57,15 @@ const OKLAB_M_1: [FType;9] =
 
 #[rustfmt::skip]
 const OKLAB_M_2: [FType;9] =
-    [0.2104542553,1.9779984951,0.0259040371,
-    0.7936177850,-2.4285922050,0.7827717662,
-    -0.0040720468,0.4505937099,-0.8086757660];
+   [0.2104542553,0.7936177850,-0.0040720468,
+   1.9779984951,-2.4285922050,0.4505937099,
+   0.0259040371,0.7827717662,-0.8086757660];
 
 pub(crate) fn xyz_to_oklab(color: &mut Vec3) {
     let mut lms = Mat3::from_cols_array(&OKLAB_M_1).transpose() * *color;
-    lms *= Vec3::splat(1.0 / 3.0); // non-linearity
+    println!("lms {:?} from {:?}", lms, color);
+    lms = lms.powf(1.0 / 3.0); // non-linearity
+    println!("non-linear {:?}", lms);
     *color = Mat3::from_cols_array(&OKLAB_M_2).transpose() * lms
 }
 

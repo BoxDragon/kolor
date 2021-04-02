@@ -120,7 +120,7 @@ impl ColorConversion {
         } else {
             Some(linear_transform)
         };
-        let dst_transform = if !src.is_linear() {
+        let dst_transform = if !dst.is_linear() {
             ColorTransform::new(TransformFn::NONE, dst.transform_function())
                 .map(|t| (t, dst.transform_function()))
         } else {
