@@ -1,10 +1,10 @@
-use kolor::conversion::LinearColorConversion;
+use kolor::details::conversion::LinearColorConversion;
 use kolor_64 as kolor;
 
 fn main() {
     let mut conversions = Vec::new();
-    for src in &kolor::color_spaces::ALL_COLOR_SPACES {
-        for dst in &kolor::color_spaces::ALL_COLOR_SPACES {
+    for src in &kolor::spaces::ALL_COLOR_SPACES {
+        for dst in &kolor::spaces::ALL_COLOR_SPACES {
             if src == dst {
                 continue;
             }

@@ -1,4 +1,5 @@
-use crate::{conversion::ColorConversion, transform::ColorTransform, FType, Vec3};
+use super::{conversion::ColorConversion, transform::ColorTransform};
+use crate::{FType, Vec3};
 #[cfg(feature = "serde1")]
 use serde::{Deserialize, Serialize};
 
@@ -138,11 +139,11 @@ impl ColorSpace {
         self.transform_fn
     }
 }
-#[doc(hidden)]
 pub mod color_spaces {
     use super::*;
     /// LinearSrgb is a linear encoding in BT.709 primaries and whitepoint.
     pub const LINEAR_SRGB: ColorSpace = ColorSpace::linear(RGBPrimaries::BT_709, WhitePoint::D65);
+    /// BT_709 is a linear encoding in BT.709 primaries and whitepoint. It's equivalent to LINEAR_SRGB.
     pub const BT_709: ColorSpace = ColorSpace::linear(RGBPrimaries::BT_709, WhitePoint::D65);
     /// Srgb is LinearSrgb with the sRGB tone response curve applied, also called "gamma-compressed".
     pub const SRGB: ColorSpace = ColorSpace::new(
@@ -154,7 +155,7 @@ pub mod color_spaces {
     pub const ACES_CG: ColorSpace = ColorSpace::linear(RGBPrimaries::AP1, WhitePoint::D60);
     /// ACES2065-1 is a linear encoding in AP0 primaries with a D60 whitepoint.
     pub const ACES2065_1: ColorSpace = ColorSpace::linear(RGBPrimaries::AP0, WhitePoint::D60);
-    /// CIE RGB is the Original Gangster of RGB spaces.
+    /// CIE RGB is the original RGB space.
     pub const CIE_RGB: ColorSpace = ColorSpace::linear(RGBPrimaries::CIE_RGB, WhitePoint::E);
     /// BT.2020 is a linear encoding in BT.2020 primaries with a D65 white point
     pub const BT_2020: ColorSpace = ColorSpace::linear(RGBPrimaries::BT_2020, WhitePoint::D65);
@@ -225,8 +226,8 @@ impl Color {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::conversion::LinearColorConversion;
-    use crate::xyz::{rgb_to_xyz, xyz_to_rgb};
+    use crate::details::conversion::LinearColorConversion;
+    use crate::details::xyz::{rgb_to_xyz, xyz_to_rgb};
     use color_spaces as spaces;
     #[test]
     fn linear_srgb_to_aces_cg() {
@@ -320,10 +321,10 @@ mod test {
     fn cat_test() {
         println!(
             "{:?}",
-            crate::cat::chromatic_adaptation_transform(
+            crate::details::cat::chromatic_adaptation_transform(
                 Vec3::from_slice_unaligned(WhitePoint::D65.values()),
                 Vec3::from_slice_unaligned(WhitePoint::E.values()),
-                crate::cat::LMSConeSpace::VonKries,
+                crate::details::cat::LMSConeSpace::VonKries,
             )
         );
     }

@@ -14,15 +14,19 @@ use glam::f32::Mat3;
 #[cfg(not(feature = "f64"))]
 use glam::f32::Vec3;
 
-pub mod cat;
-pub mod color;
+pub mod details {
+    pub mod cat;
+    pub mod color;
+    pub mod conversion;
+    #[allow(clippy::excessive_precision)]
+    #[cfg(feature = "color-matrices")]
+    pub mod generated_matrices;
+    pub mod transform;
+    pub mod xyz;
+}
 #[doc(inline)]
-pub use color::{color_spaces, Color, ColorSpace};
-pub mod conversion;
+pub use details::color::color_spaces as spaces;
 #[doc(inline)]
-pub use conversion::ColorConversion;
-#[allow(clippy::excessive_precision)]
-#[cfg(feature = "color-matrices")]
-mod generated_matrices;
-pub mod transform;
-pub mod xyz;
+pub use details::color::{Color, ColorSpace};
+#[doc(inline)]
+pub use details::conversion::ColorConversion;

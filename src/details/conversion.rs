@@ -1,9 +1,9 @@
-use crate::{
+use super::{
     color::TransformFn,
     transform::ColorTransform,
     xyz::{rgb_to_xyz, xyz_to_rgb},
-    ColorSpace, Mat3, Vec3,
 };
+use crate::{ColorSpace, Mat3, Vec3};
 #[cfg(feature = "serde1")]
 use serde::{Deserialize, Serialize};
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -36,7 +36,7 @@ impl LinearColorConversion {
             panic!("{:?} is not a linear color space", dst);
         }
         #[cfg(feature = "color-matrices")]
-        let const_conversion = crate::generated_matrices::const_conversion_matrix(
+        let const_conversion = super::generated_matrices::const_conversion_matrix(
             src.primaries(),
             src.white_point(),
             dst.primaries(),
@@ -51,10 +51,10 @@ impl LinearColorConversion {
             let src_to_xyz = rgb_to_xyz(src.primaries().values(), src.white_point().values());
             let xyz_to_dst = xyz_to_rgb(dst.primaries().values(), dst.white_point().values());
             if src.white_point() != dst.white_point() {
-                let white_point_transform = crate::cat::chromatic_adaptation_transform(
+                let white_point_transform = super::cat::chromatic_adaptation_transform(
                     Vec3::from_slice_unaligned(src.white_point().values()),
                     Vec3::from_slice_unaligned(dst.white_point().values()),
-                    crate::cat::LMSConeSpace::Sharp,
+                    super::cat::LMSConeSpace::Sharp,
                 );
                 xyz_to_dst * white_point_transform * src_to_xyz
             } else {
