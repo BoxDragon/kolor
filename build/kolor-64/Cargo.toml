@@ -1,0 +1,22 @@
+[package]
+name = "kolor-64"
+version = "0.1.0"
+authors = ["Karl Bergström <karl.anton.bergstrom@gmail.com>"]
+edition = "2018"
+
+[lib]
+name = "kolor_64"
+path = "../../src/lib.rs"
+required-features = ["f64"]
+
+[dependencies]
+glam = { version = "0.13.1", default-features = false }
+serde = { optional = true, version = "1", features = ["derive"] }
+
+[features]
+default = ["color-matrices", "f64", "std"]
+serde1 = ["serde", "glam/serde"]
+color-matrices = []
+f64 = []
+std = ["glam/std"]
+libm = ["glam/libm"]

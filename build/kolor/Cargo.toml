@@ -1,0 +1,22 @@
+[package]
+name = "kolor"
+version = "0.1.0"
+authors = ["Karl Bergström <karl.anton.bergstrom@gmail.com>"]
+edition = "2018"
+
+[lib]
+name = "kolor"
+path = "../../src/lib.rs"
+required-features = ["f32"]
+
+[dependencies]
+glam = { version = "0.13.1", default-features = false }
+serde = { optional = true, version = "1", features = ["derive"] }
+
+[features]
+default = ["color-matrices", "f32", "std"]
+serde1 = ["serde", "glam/serde"]
+color-matrices = []
+f32 = []
+std = ["glam/std"]
+libm = ["glam/libm"]
