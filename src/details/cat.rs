@@ -1,6 +1,12 @@
+//! Implements Chromatic Adaptation Transformation (CAT).
+//!
+//! Chromatic Adaptation Transformation means transforming a color space's
+//! coordinate system from one white point reference to another.
+//!
+//! [LMSConeSpace] defines the set of supported conversion methods.
+//! [LMSConeSpace::Sharp] is used as a default for conversions by
+//! [ColorConversion][crate::details::conversion::ColorConversion].
 use crate::{Mat3, Vec3};
-
-// Implements chromatic adaptation transformation, i.e. converting a color space from one white point to another
 
 pub enum LMSConeSpace {
     VonKries,
@@ -52,13 +58,6 @@ pub fn lms_cone_space_matrix(cone_space: LMSConeSpace) -> Mat3 {
     }
 }
 
-// gain = (xfm*xyz_target)./(xfm*xyz_est);
-
-// outMat = xfm\(diag(gain)*xfm);
-// sRGBtoXYZ =   [0.4124564  0.3575761  0.1804375; ...
-//                0.2126729  0.7151522  0.0721750; ...
-//                0.0193339  0.1191920  0.9503041];
-// outMat = inv(sRGBtoXYZ)*outMat*sRGBtoXYZ;
 #[rustfmt::skip]
 pub fn chromatic_adaptation_transform(
     src_illuminant: Vec3,

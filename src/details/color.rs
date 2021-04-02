@@ -188,11 +188,11 @@ pub mod color_spaces {
     /// Array containing all defined color spaces.
     pub const ALL_COLOR_SPACES: [ColorSpace; 7] = [
         color_spaces::BT_709,
+        color_spaces::BT_2020,
         color_spaces::SRGB,
         color_spaces::ACES_CG,
         color_spaces::ACES2065_1,
         color_spaces::CIE_RGB,
-        color_spaces::BT_2020,
         color_spaces::OKLAB,
     ];
 }
