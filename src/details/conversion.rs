@@ -153,6 +153,16 @@ impl ColorConversion {
             }
         }
     }
+    pub fn src_transform(&self) -> TransformFn {
+        self.src_transform
+            .map(|(_, f)| f)
+            .unwrap_or(TransformFn::NONE)
+    }
+    pub fn dst_transform(&self) -> TransformFn {
+        self.dst_transform
+            .map(|(_, f)| f)
+            .unwrap_or(TransformFn::NONE)
+    }
     pub fn src_space(&self) -> ColorSpace {
         self.src_space
     }
