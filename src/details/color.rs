@@ -3,6 +3,7 @@ use crate::{FType, Vec3};
 #[cfg(feature = "serde1")]
 use serde::{Deserialize, Serialize};
 
+/// A [TransformFn] identifies an invertible mapping of color coordinates in a linear [ColorSpace].
 #[repr(u8)]
 #[derive(Debug, Copy, Clone, PartialEq, Hash, Eq)]
 #[cfg_attr(feature = "serde1", derive(Serialize, Deserialize))]
@@ -14,11 +15,12 @@ pub enum TransformFn {
     /// Oklab conversion from xyz
     Oklab,
     /// ACEScc is a logarithmic transform
-    ACES_CC,
+    // ACES_CC,
     /// ACEScct is a logarithmic transform with toe
-    ACES_CCT,
+    // ACES_CCT,
     MAX_VALUE,
 }
+/// [RGBPrimaries] is a set of primary colors picked to define an RGB color coordinate systme.
 #[repr(u8)]
 #[derive(Debug, Copy, Clone, PartialEq, Hash, Eq)]
 #[cfg_attr(feature = "serde1", derive(Serialize, Deserialize))]
@@ -51,6 +53,9 @@ impl RGBPrimaries {
     }
 }
 
+/// A [WhitePoint] defines the color "white" in an RGB color system.
+/// White points are derived from an "illuminant" which are defined
+/// as some reference lighting condition based on a Spectral Power Distribution.
 #[repr(u8)]
 #[derive(Debug, Copy, Clone, PartialEq, Hash, Eq)]
 #[cfg_attr(feature = "serde1", derive(Serialize, Deserialize))]
@@ -91,7 +96,14 @@ impl WhitePoint {
     }
 }
 
-// Color space definition is split into primaries, whitepoint and optionally a non-linear transform.
+/// [ColorSpace] is defined by its [RGBPrimaries], a [WhitePoint] and optionally a non-linear [TransformFn].
+/// An example of a non-linear transform is the sRGB "opto-eletronic transfer function", or
+/// "gamma compensation".
+///
+/// A linear [ColorSpace] can be thought of as defining a coordinate system in the CIE XYZ color coordinate space,
+/// where the three primaries each define an axis pointing from (0,0,0) in CIE XYZ.
+/// Non-linear [ColorSpace]s - such as sRGB with gamma compensation applied - are defined as a mapping from a linear
+/// [ColorSpace]'s coordinate system.
 #[derive(Debug, Copy, Clone, PartialEq, Hash, Eq)]
 #[cfg_attr(feature = "serde1", derive(Serialize, Deserialize))]
 #[repr(C)]
@@ -174,6 +186,7 @@ pub mod color_spaces {
     ];
 }
 
+/// [Color] is a 3-component color coordinate in a [ColorSpace].
 #[derive(Copy, Clone, Debug)]
 #[cfg_attr(feature = "serde1", derive(Serialize, Deserialize))]
 pub struct Color {

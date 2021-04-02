@@ -69,6 +69,8 @@ impl LinearColorConversion {
     }
 }
 
+/// [ColorConversion] defines a conversion of a 3-component color coordinate
+/// from a source [ColorSpace] to a destination [ColorSpace].
 #[derive(Copy, Clone)]
 pub struct ColorConversion {
     src_space: ColorSpace,
