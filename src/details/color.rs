@@ -96,6 +96,8 @@ impl WhitePoint {
     }
 }
 
+/// See [spaces][crate::spaces] for defined color spaces.
+///
 /// [ColorSpace] is defined by its [RGBPrimaries], a [WhitePoint] and optionally a non-linear [TransformFn].
 /// An example of a non-linear transform is the sRGB "opto-eletronic transfer function", or
 /// "gamma compensation".
@@ -153,28 +155,37 @@ impl ColorSpace {
 }
 pub mod color_spaces {
     use super::*;
-    /// LinearSrgb is a linear encoding in BT.709 primaries and whitepoint.
+
+    /// Linear sRGB is a linear encoding in [BT.709 primaries][RGBPrimaries::BT_709]
+    /// with a [D65 whitepoint.][WhitePoint::D65]
+    /// Linear sRGB is equivalent to [BT_709].
     pub const LINEAR_SRGB: ColorSpace = ColorSpace::linear(RGBPrimaries::BT_709, WhitePoint::D65);
-    /// BT_709 is a linear encoding in BT.709 primaries and whitepoint. It's equivalent to LINEAR_SRGB.
+    /// BT_709 is a linear encoding in [BT.709 primaries][RGBPrimaries::BT_709]
+    /// with a [D65 whitepoint.][WhitePoint::D65]. It's equivalent to [Linear sRGB][LINEAR_SRGB]
     pub const BT_709: ColorSpace = ColorSpace::linear(RGBPrimaries::BT_709, WhitePoint::D65);
-    /// Srgb is LinearSrgb with the sRGB tone response curve applied, also called "gamma-compressed".
+    /// sRGB is [Linear sRGB][LINEAR_SRGB] with the sRGB tone response curve applied, also called "gamma-compressed".
     pub const SRGB: ColorSpace = ColorSpace::new(
         RGBPrimaries::BT_709,
         WhitePoint::D65,
         TransformFn::SRGB_Gamma,
     );
-    /// ACEScg is a linear encoding in AP1 primaries with a D60 whitepoint.
+    /// ACEScg is a linear encoding in [AP1 primaries][RGBPrimaries::AP1]
+    /// with a [D60 whitepoint][WhitePoint::D60].
     pub const ACES_CG: ColorSpace = ColorSpace::linear(RGBPrimaries::AP1, WhitePoint::D60);
-    /// ACES2065-1 is a linear encoding in AP0 primaries with a D60 whitepoint.
+    /// ACES2065-1 is a linear encoding in [AP0 primaries][RGBPrimaries::AP0] with a [D60 whitepoint][WhitePoint::D60].
     pub const ACES2065_1: ColorSpace = ColorSpace::linear(RGBPrimaries::AP0, WhitePoint::D60);
-    /// CIE RGB is the original RGB space.
+    /// CIE RGB is the original RGB space, defined in [CIE RGB primaries][RGBPrimaries::CIE_RGB]
+    /// with white point [E][WhitePoint::E].
     pub const CIE_RGB: ColorSpace = ColorSpace::linear(RGBPrimaries::CIE_RGB, WhitePoint::E);
-    /// BT.2020 is a linear encoding in BT.2020 primaries with a D65 white point
+    /// BT.2020 is a linear encoding in [BT.2020 primaries][RGBPrimaries::BT_2020]
+    /// with a [D65 white point][WhitePoint::D65]
     pub const BT_2020: ColorSpace = ColorSpace::linear(RGBPrimaries::BT_2020, WhitePoint::D65);
-    /// Oklab is a non-linear encoding in XYZ primaries with a D65 whitepoint
+    /// Oklab is a non-linear encoding in [XYZ primaries][RGBPrimaries::CIE_XYZ]
+    /// with a [D65 whitepoint][WhitePoint::D65]
     pub const OKLAB: ColorSpace =
         ColorSpace::new(RGBPrimaries::CIE_XYZ, WhitePoint::D65, TransformFn::Oklab);
 
+    /// Array containing all defined color spaces.
     pub const ALL_COLOR_SPACES: [ColorSpace; 7] = [
         color_spaces::BT_709,
         color_spaces::SRGB,
