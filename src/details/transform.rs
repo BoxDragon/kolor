@@ -1,11 +1,12 @@
 use super::color::TransformFn;
 use crate::{FType, Mat3, Vec3};
 
+/// [ColorTransform] represents a reference to a function that can apply a [TransformFn]
+/// or its inverse.
 #[derive(Copy, Clone)]
 pub struct ColorTransform(for<'r> fn(&'r mut Vec3));
 impl ColorTransform {
     pub fn new(src_transform: TransformFn, dst_transform: TransformFn) -> Option<Self> {
-        println!("transform from {:?} to {:?}", src_transform, dst_transform);
         use super::transform::*;
         Some(Self(match (src_transform, dst_transform) {
             (TransformFn::SRGB_Gamma, TransformFn::NONE) => {
@@ -64,9 +65,7 @@ const OKLAB_M_2: [FType;9] =
 
 pub(crate) fn xyz_to_oklab(color: &mut Vec3) {
     let mut lms = Mat3::from_cols_array(&OKLAB_M_1).transpose() * *color;
-    println!("lms {:?} from {:?}", lms, color);
     lms = lms.powf(1.0 / 3.0); // non-linearity
-    println!("non-linear {:?}", lms);
     *color = Mat3::from_cols_array(&OKLAB_M_2).transpose() * lms
 }
 

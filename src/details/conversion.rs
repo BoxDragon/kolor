@@ -3,9 +3,11 @@ use super::{
     transform::ColorTransform,
     xyz::{rgb_to_xyz, xyz_to_rgb},
 };
-use crate::{ColorSpace, Mat3, Vec3};
+use crate::{ColorSpace, FType, Mat3, Vec3};
 #[cfg(feature = "serde1")]
 use serde::{Deserialize, Serialize};
+
+/// A transformation from one linear color coordinate system to another.
 #[derive(Copy, Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde1", derive(Serialize, Deserialize))]
 pub struct LinearColorConversion {
@@ -75,9 +77,9 @@ impl LinearColorConversion {
 pub struct ColorConversion {
     src_space: ColorSpace,
     dst_space: ColorSpace,
-    src_transform: Option<(ColorTransform, TransformFn)>,
+    src_transform: Option<ColorTransform>,
     linear_transform: Option<LinearColorConversion>,
-    dst_transform: Option<(ColorTransform, TransformFn)>,
+    dst_transform: Option<ColorTransform>,
 }
 impl PartialEq for ColorConversion {
     fn eq(&self, other: &Self) -> bool {
@@ -110,7 +112,6 @@ impl ColorConversion {
     pub fn new(src: ColorSpace, dst: ColorSpace) -> Self {
         let src_transform = if !src.is_linear() {
             ColorTransform::new(src.transform_function(), TransformFn::NONE)
-                .map(|t| (t, src.transform_function()))
         } else {
             None
         };
@@ -124,7 +125,6 @@ impl ColorConversion {
         };
         let dst_transform = if !dst.is_linear() {
             ColorTransform::new(TransformFn::NONE, dst.transform_function())
-                .map(|t| (t, dst.transform_function()))
         } else {
             None
         };
@@ -155,12 +155,12 @@ impl ColorConversion {
     }
     pub fn src_transform(&self) -> TransformFn {
         self.src_transform
-            .map(|(_, f)| f)
+            .map(|_| self.src_space.transform_function())
             .unwrap_or(TransformFn::NONE)
     }
     pub fn dst_transform(&self) -> TransformFn {
         self.dst_transform
-            .map(|(_, f)| f)
+            .map(|_| self.dst_space.transform_function())
             .unwrap_or(TransformFn::NONE)
     }
     pub fn src_space(&self) -> ColorSpace {
@@ -169,14 +169,19 @@ impl ColorConversion {
     pub fn dst_space(&self) -> ColorSpace {
         self.dst_space
     }
+    pub fn apply_float(&self, color: &mut [FType; 3]) {
+        let mut vec3 = Vec3::from_slice_unaligned(color);
+        self.apply(&mut vec3);
+        *color = vec3.into();
+    }
     pub fn apply(&self, color: &mut Vec3) {
-        if let Some((src_transform, _)) = self.src_transform.as_ref() {
+        if let Some(src_transform) = self.src_transform.as_ref() {
             src_transform.apply(color);
         }
         if let Some(transform) = self.linear_transform.as_ref() {
             transform.apply(color);
         }
-        if let Some((dst_transform, _)) = self.dst_transform.as_ref() {
+        if let Some(dst_transform) = self.dst_transform.as_ref() {
             dst_transform.apply(color);
         }
     }

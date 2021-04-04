@@ -23,7 +23,6 @@ pub fn rgb_to_xyz(primaries: &[[FType;2]; 3], white_point: &[FType;3]) -> Mat3 {
             [Xr, Xg, Xb,
                 Yr, Yg, Yb,
                 Zr, Zg, Zb]).transpose();
-            //  println!("determinant {:?}", base_matrix.determinant());
 
     let scale = base_matrix.inverse() * Vec3::new(Wx, Wy, Wz);
     base_matrix.x_axis *= scale.x;

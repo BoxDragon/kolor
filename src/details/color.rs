@@ -96,9 +96,11 @@ impl WhitePoint {
     }
 }
 
+/// [ColorSpace] is a coordinate space for colors.
 /// See [spaces][crate::spaces] for defined color spaces.
 ///
-/// [ColorSpace] is defined by its [RGBPrimaries], a [WhitePoint] and optionally a non-linear [TransformFn].
+/// A [ColorSpace]'s coordinate system is defined by its [RGBPrimaries],
+/// a [WhitePoint] and optionally a non-linear [TransformFn].
 /// An example of a non-linear transform is the sRGB "opto-eletronic transfer function", or
 /// "gamma compensation".
 ///
@@ -108,7 +110,6 @@ impl WhitePoint {
 /// [ColorSpace]'s coordinate system.
 #[derive(Debug, Copy, Clone, PartialEq, Hash, Eq)]
 #[cfg_attr(feature = "serde1", derive(Serialize, Deserialize))]
-#[repr(C)]
 pub struct ColorSpace {
     primaries: RGBPrimaries,
     white_point: WhitePoint,
@@ -133,6 +134,7 @@ impl ColorSpace {
             transform_fn: TransformFn::NONE,
         }
     }
+    /// Whether the coordinate space has a non-linear transform applied
     pub fn is_linear(&self) -> bool {
         self.transform_fn == TransformFn::NONE
     }
@@ -151,6 +153,36 @@ impl ColorSpace {
     }
     pub fn transform_function(&self) -> TransformFn {
         self.transform_fn
+    }
+
+    /// Creates a new color space with the primaries and white point from `this`,
+    /// but with the provided [TransformFn].
+    pub fn with_transform(&self, new_transform: TransformFn) -> Self {
+        Self {
+            primaries: self.primaries,
+            white_point: self.white_point,
+            transform_fn: new_transform,
+        }
+    }
+
+    /// Creates a new color space with the transform function and white point from `this`,
+    /// but with the provided [WhitePoint].
+    pub fn with_whitepoint(&self, new_wp: WhitePoint) -> Self {
+        Self {
+            primaries: self.primaries,
+            white_point: new_wp,
+            transform_fn: self.transform_fn,
+        }
+    }
+
+    /// Creates a new color space with the primaries and transform function from `this`,
+    /// but with the provided [RGBPrimaries].
+    pub fn with_primaries(&self, primaries: RGBPrimaries) -> Self {
+        Self {
+            primaries: primaries,
+            white_point: self.white_point,
+            transform_fn: self.transform_fn,
+        }
     }
 }
 pub mod color_spaces {
@@ -185,7 +217,7 @@ pub mod color_spaces {
     pub const OKLAB: ColorSpace =
         ColorSpace::new(RGBPrimaries::CIE_XYZ, WhitePoint::D65, TransformFn::Oklab);
 
-    /// Array containing all defined color spaces.
+    /// Array containing all built-in color spaces.
     pub const ALL_COLOR_SPACES: [ColorSpace; 7] = [
         color_spaces::BT_709,
         color_spaces::BT_2020,
@@ -197,51 +229,50 @@ pub mod color_spaces {
     ];
 }
 
-/// [Color] is a 3-component color coordinate in a [ColorSpace].
+/// [Color] is a 3-component coordinate in a [ColorSpace].
 #[derive(Copy, Clone, Debug)]
 #[cfg_attr(feature = "serde1", derive(Serialize, Deserialize))]
 pub struct Color {
     pub value: Vec3,
-    pub color_space: ColorSpace,
+    pub space: ColorSpace,
 }
 impl Color {
     pub fn new(x: FType, y: FType, z: FType, space: ColorSpace) -> Self {
         Self {
             value: Vec3::new(x, y, z),
-            color_space: space,
+            space,
         }
     }
     pub fn space(&self) -> ColorSpace {
-        self.color_space
+        self.space
     }
     pub fn srgb(srgb_value: Vec3) -> Self {
         Self {
             value: srgb_value,
-            color_space: color_spaces::SRGB,
+            space: color_spaces::SRGB,
         }
     }
     pub fn to(&self, space: ColorSpace) -> Color {
-        let conversion = ColorConversion::new(self.color_space, space);
+        let conversion = ColorConversion::new(self.space, space);
         let mut new_color = *self;
         conversion.apply(&mut new_color.value);
-        new_color.color_space = space;
+        new_color.space = space;
         new_color
     }
     pub fn to_linear(&self) -> Color {
-        if self.color_space.is_linear() {
+        if self.space.is_linear() {
             *self
         } else {
             let mut new_color = *self;
-            let transform =
-                ColorTransform::new(self.color_space.transform_function(), TransformFn::NONE)
-                    .unwrap_or_else(|| {
-                        panic!(
-                            "expected transform for {:?}",
-                            self.color_space.transform_function()
-                        )
-                    });
+            let transform = ColorTransform::new(self.space.transform_function(), TransformFn::NONE)
+                .unwrap_or_else(|| {
+                    panic!(
+                        "expected transform for {:?}",
+                        self.space.transform_function()
+                    )
+                });
             transform.apply(&mut new_color.value);
-            new_color.color_space = self.color_space.as_linear();
+            new_color.space = self.space.as_linear();
             new_color
         }
     }
