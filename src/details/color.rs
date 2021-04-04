@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 #[repr(u8)]
 #[derive(Debug, Copy, Clone, PartialEq, Hash, Eq)]
 #[cfg_attr(feature = "serde1", derive(Serialize, Deserialize))]
-#[allow(non_camel_case_types)]
+#[allow(non_camel_case_types, clippy::upper_case_acronyms)]
 pub enum TransformFn {
     NONE,
     /// The SRGB "gamma compensation" function
@@ -24,7 +24,7 @@ pub enum TransformFn {
 #[repr(u8)]
 #[derive(Debug, Copy, Clone, PartialEq, Hash, Eq)]
 #[cfg_attr(feature = "serde1", derive(Serialize, Deserialize))]
-#[allow(non_camel_case_types)]
+#[allow(non_camel_case_types, clippy::upper_case_acronyms)]
 pub enum RGBPrimaries {
     // Primaries
     NONE,
@@ -59,7 +59,7 @@ impl RGBPrimaries {
 #[repr(u8)]
 #[derive(Debug, Copy, Clone, PartialEq, Hash, Eq)]
 #[cfg_attr(feature = "serde1", derive(Serialize, Deserialize))]
-#[allow(non_camel_case_types)]
+#[allow(non_camel_case_types, clippy::upper_case_acronyms)]
 pub enum WhitePoint {
     NONE,
     A,
@@ -179,7 +179,7 @@ impl ColorSpace {
     /// but with the provided [RGBPrimaries].
     pub fn with_primaries(&self, primaries: RGBPrimaries) -> Self {
         Self {
-            primaries: primaries,
+            primaries,
             white_point: self.white_point,
             transform_fn: self.transform_fn,
         }

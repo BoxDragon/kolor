@@ -102,6 +102,7 @@ pub mod details {
     #[allow(clippy::excessive_precision)]
     #[cfg(feature = "color-matrices")]
     pub mod generated_matrices;
+    #[allow(clippy::excessive_precision)]
     pub mod transform;
     pub mod xyz;
 }
