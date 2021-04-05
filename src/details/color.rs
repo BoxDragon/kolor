@@ -290,12 +290,15 @@ impl Color {
     pub fn space(&self) -> ColorSpace {
         self.space
     }
-    pub fn srgb(srgb_value: Vec3) -> Self {
+    /// Equivalent to `Color::new(x, y, z, kolor::spaces::SRGB)`
+    pub fn srgb(x: FType, y: FType, z: FType) -> Self {
         Self {
-            value: srgb_value,
+            value: Vec3::new(x, y, z),
             space: color_spaces::SRGB,
         }
     }
+
+    /// Returns a [Color] with this color coordinate converted into the provided [ColorSpace].
     pub fn to(&self, space: ColorSpace) -> Color {
         let conversion = ColorConversion::new(self.space, space);
         let mut new_color = *self;
@@ -432,8 +435,8 @@ mod test {
     #[test]
     fn oklab_test() {
         let xyz = Color::new(
-            1.0,
             0.0,
+            1.0,
             0.0,
             ColorSpace::new(RGBPrimaries::CIE_XYZ, WhitePoint::D65, TransformFn::NONE),
         );
@@ -442,7 +445,8 @@ mod test {
             "conversion {:?}",
             ColorConversion::new(xyz.space(), oklab.space())
         );
-        println!("{:?} - {:?}", xyz, oklab);
+        println!("xyz {:?}", xyz.value);
+        println!("oklab {:?}", oklab.value);
     }
 
     #[test]

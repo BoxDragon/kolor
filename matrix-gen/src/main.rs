@@ -8,15 +8,21 @@ fn main() {
             if src == dst {
                 continue;
             }
-            if !src.is_linear() || !dst.is_linear() {
+            let linear_src = src.as_linear();
+            let linear_dst = dst.as_linear();
+            if conversions.iter().any(|c: &LinearColorConversion| {
+                c.input_space() == linear_src && c.output_space() == linear_dst
+            }) {
                 continue;
             }
-            conversions.push(LinearColorConversion::new(*src, *dst));
+            conversions.push(LinearColorConversion::new(linear_src, linear_dst));
         }
     }
     let mut out_str = String::with_capacity(conversions.len() * 256);
-    out_str += "use crate::{
+    out_str += "use super::{
     color::{RGBPrimaries, WhitePoint},
+};
+use crate::{
     FType, Mat3,
 };";
     let mut const_matches = String::with_capacity(conversions.len() * 128);
@@ -80,5 +86,5 @@ pub fn const_conversion_matrix(
         const_matches
     );
 
-    std::fs::write("../src/generated_matrices.rs", out_str).unwrap();
+    std::fs::write("../src/details/generated_matrices.rs", out_str).unwrap();
 }

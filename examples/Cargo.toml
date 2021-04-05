@@ -1,0 +1,14 @@
+[package]
+name = "kolor-examples"
+version = "0.1.0"
+authors = ["Sébastien Crozet <developer@crozet.re>"]
+edition = "2018"
+default-run = "all_examples"
+publish = false
+
+[[bin]]
+name = "all_examples"
+path = "./all_examples.rs"
+
+[dependencies]
+kolor = { path = "../build/kolor" }

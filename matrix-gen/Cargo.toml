@@ -7,5 +7,6 @@ publish = false
 
 [dependencies]
 kolor-64 = { version = "0.1.0", path = "../build/kolor-64", default-features = false, features = [
+    "std",
     "f64"
 ] }

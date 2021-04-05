@@ -84,7 +84,7 @@
 //! system given a set of primaries and a white point.
 //!
 //! # no_std support
-//! kolor supports `no_std` by disabling the default-enabled `std` feature.
+//! kolor supports `no_std` by disabling the default-enabled `std` feature and enabling the `libm` feature.
 
 #![cfg_attr(not(feature = "std"), no_std)]
 

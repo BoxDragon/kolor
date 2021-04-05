@@ -1,2 +1,2 @@
 [workspace]
-members = ["matrix-gen", "build/kolor", "build/kolor-64"]
+members = ["matrix-gen", "build/kolor", "build/kolor-64", "examples"]
