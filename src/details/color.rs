@@ -11,13 +11,25 @@ use serde::{Deserialize, Serialize};
 pub enum TransformFn {
     NONE,
     /// The SRGB "gamma compensation" function
-    SRGB_Gamma,
+    sRGB_Gamma,
     /// Oklab conversion from xyz
     Oklab,
     /// ACEScc is a logarithmic transform
     // ACES_CC,
     /// ACEScct is a logarithmic transform with toe
     // ACES_CCT,
+    /// CIE xyY transform
+    CIE_xyY,
+    /// CIELAB transform
+    CIELAB,
+    /// CIELCh transform
+    CIELCh,
+    /// CIE 1960 UCS transform
+    CIE_1960_UCS,
+    /// CIE 1960 UCS transform in uvV coordinate form
+    CIE_1960_UCS_uvV,
+    /// CIE 1964 UVW transform
+    CIE_1964_UVW,
     MAX_VALUE,
 }
 /// [RGBPrimaries] is a set of primary colors picked to define an RGB color coordinate systme.
@@ -35,6 +47,7 @@ pub enum RGBPrimaries {
     AP0,
     AP1,
     CIE_RGB,
+    /// The "absolute" reference XYZ color space
     CIE_XYZ,
     MAX_VALUE,
 }
@@ -62,17 +75,28 @@ impl RGBPrimaries {
 #[allow(non_camel_case_types, clippy::upper_case_acronyms)]
 pub enum WhitePoint {
     NONE,
+    /// Incandescent/tungsten
     A,
+    /// Old direct sunlight at noon
     B,
+    /// Old daylight
     C,
+    /// Equal energy
     E,
+    /// ICC profile PCS
     D50,
+    /// Mid-morning daylight
     D55,
     D60,
+    /// Daylight, sRGB, Adobe-RGB
     D65,
+    /// North sky daylight
     D75,
+    /// Cool fluorescent
     F2,
+    /// Daylight fluorescent, D65 simulator
     F7,
+    /// Ultralume 40, Philips TL84
     F11,
     MAX_VALUE,
 }
@@ -184,6 +208,26 @@ impl ColorSpace {
             transform_fn: self.transform_fn,
         }
     }
+
+    /// Creates a CIE LAB color space using this space's white point.
+    pub fn to_cielab(&self) -> Self {
+        Self::new(RGBPrimaries::CIE_XYZ, self.white_point, TransformFn::CIELAB)
+    }
+
+    /// Creates a CIE uvV color space using this space's white point.
+    #[allow(non_snake_case)]
+    pub fn to_cie_xyY(&self) -> Self {
+        Self::new(
+            RGBPrimaries::CIE_XYZ,
+            self.white_point,
+            TransformFn::CIE_xyY,
+        )
+    }
+
+    /// Creates a CIE LCh color space using this space's white point.
+    pub fn to_cielch(&self) -> Self {
+        Self::new(RGBPrimaries::CIE_XYZ, self.white_point, TransformFn::CIELCh)
+    }
 }
 pub mod color_spaces {
     use super::*;
@@ -199,7 +243,7 @@ pub mod color_spaces {
     pub const SRGB: ColorSpace = ColorSpace::new(
         RGBPrimaries::BT_709,
         WhitePoint::D65,
-        TransformFn::SRGB_Gamma,
+        TransformFn::sRGB_Gamma,
     );
     /// ACEScg is a linear encoding in [AP1 primaries][RGBPrimaries::AP1]
     /// with a [D60 whitepoint][WhitePoint::D60].
@@ -212,7 +256,7 @@ pub mod color_spaces {
     /// BT.2020 is a linear encoding in [BT.2020 primaries][RGBPrimaries::BT_2020]
     /// with a [D65 white point][WhitePoint::D65]
     pub const BT_2020: ColorSpace = ColorSpace::linear(RGBPrimaries::BT_2020, WhitePoint::D65);
-    /// Oklab is a non-linear encoding in [XYZ primaries][RGBPrimaries::CIE_XYZ]
+    /// Oklab is a non-linear encoding in [XYZ][RGBPrimaries::CIE_XYZ],
     /// with a [D65 whitepoint][WhitePoint::D65]
     pub const OKLAB: ColorSpace =
         ColorSpace::new(RGBPrimaries::CIE_XYZ, WhitePoint::D65, TransformFn::Oklab);
@@ -271,7 +315,7 @@ impl Color {
                         self.space.transform_function()
                     )
                 });
-            transform.apply(&mut new_color.value);
+            transform.apply(&mut new_color.value, self.space().white_point);
             new_color.space = self.space.as_linear();
             new_color
         }
@@ -279,6 +323,7 @@ impl Color {
 }
 
 #[cfg(test)]
+#[allow(non_snake_case)]
 mod test {
     use super::*;
     use crate::details::conversion::LinearColorConversion;
@@ -310,9 +355,9 @@ mod test {
 
     #[test]
     fn linear_srgb_to_srgb() {
-        let transform = ColorTransform::new(TransformFn::NONE, TransformFn::SRGB_Gamma).unwrap();
+        let transform = ColorTransform::new(TransformFn::NONE, TransformFn::sRGB_Gamma).unwrap();
         let mut result = Vec3::new(0.35, 0.1, 0.8);
-        transform.apply(&mut result);
+        transform.apply(&mut result, WhitePoint::D65);
         assert_eq!(result, Vec3::new(0.6262097, 0.34919018, 0.9063317));
     }
 
@@ -398,5 +443,45 @@ mod test {
             ColorConversion::new(xyz.space(), oklab.space())
         );
         println!("{:?} - {:?}", xyz, oklab);
+    }
+
+    #[test]
+    fn cielab_test() {
+        let srgb = Color::new(1.0, 0.5, 0.0, spaces::SRGB);
+        let cielab = srgb.to(srgb.space.to_cielab());
+        let cielab_inverse = cielab.to(srgb.space);
+        let cielch = srgb.to(srgb.space.to_cielch());
+        let cielch_inverse = cielch.to(srgb.space);
+        let xyY = srgb.to(srgb.space.to_cie_xyY());
+        let xyY_inverse = xyY.to(srgb.space);
+        println!(
+            "conversion {:?}",
+            ColorConversion::new(srgb.space(), cielab.space())
+        );
+        println!("srgb {:?}", srgb.value);
+        println!("cielab {:?}", cielab.value);
+        println!("cielab_inverse {:?}", cielab_inverse.value);
+        println!("cielch {:?}", cielch.value);
+        println!("cielch_inverse {:?}", cielch_inverse.value);
+        println!("xyY {:?}", xyY.value);
+        println!("xyY_inverse {:?}", xyY_inverse.value);
+        println!(
+            " xyz {:?}",
+            srgb.to(ColorSpace::new(
+                RGBPrimaries::CIE_XYZ,
+                WhitePoint::D65,
+                TransformFn::NONE
+            ))
+        );
+    }
+
+    #[test]
+    fn cie_uvV_test() {
+        let srgb = Color::new(1.0, 0.5, 0.0, spaces::SRGB);
+        let uvV = srgb.to(srgb.space.to_cielab());
+        let uvV_inverse = uvV.to(srgb.space);
+        println!("srgb {:?}", srgb.value);
+        println!("uvV {:?}", uvV.value);
+        println!("uvV_inverse {:?}", uvV_inverse.value);
     }
 }

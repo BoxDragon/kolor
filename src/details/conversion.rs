@@ -1,5 +1,5 @@
 use super::{
-    color::TransformFn,
+    color::{RGBPrimaries, TransformFn},
     transform::ColorTransform,
     xyz::{rgb_to_xyz, xyz_to_rgb},
 };
@@ -50,8 +50,16 @@ impl LinearColorConversion {
         let mat = if let Some(const_mat) = const_conversion {
             const_mat
         } else {
-            let src_to_xyz = rgb_to_xyz(src.primaries().values(), src.white_point().values());
-            let xyz_to_dst = xyz_to_rgb(dst.primaries().values(), dst.white_point().values());
+            let src_to_xyz = if src.primaries() == RGBPrimaries::CIE_XYZ {
+                Mat3::IDENTITY
+            } else {
+                rgb_to_xyz(src.primaries().values(), src.white_point().values())
+            };
+            let xyz_to_dst = if dst.primaries() == RGBPrimaries::CIE_XYZ {
+                Mat3::IDENTITY
+            } else {
+                xyz_to_rgb(dst.primaries().values(), dst.white_point().values())
+            };
             if src.white_point() != dst.white_point() {
                 let white_point_transform = super::cat::chromatic_adaptation_transform(
                     Vec3::from_slice_unaligned(src.white_point().values()),
@@ -176,13 +184,13 @@ impl ColorConversion {
     }
     pub fn apply(&self, color: &mut Vec3) {
         if let Some(src_transform) = self.src_transform.as_ref() {
-            src_transform.apply(color);
+            src_transform.apply(color, self.src_space.white_point());
         }
         if let Some(transform) = self.linear_transform.as_ref() {
             transform.apply(color);
         }
         if let Some(dst_transform) = self.dst_transform.as_ref() {
-            dst_transform.apply(color);
+            dst_transform.apply(color, self.dst_space.white_point());
         }
     }
 }

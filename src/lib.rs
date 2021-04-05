@@ -1,11 +1,11 @@
 //! kolor implements conversions between 3-component color spaces.
 //!
 //! kolor is intended for use in games or other interactive visual applications,
-//! where it can help implement correct color management.
+//! where it can help implement correct color management and wide color gamut rendering.
 //!
 //! # Named color spaces
-//! Named color spaces can be found in [spaces]. You can also construct custom [ColorSpace]s
-//! from a combination of primaries, whitepoint and transform function.
+//! Named color space definitions can be found in [spaces].
+//!
 //! - sRGB / linear sRGB / BT.709
 //! - BT.2020
 //! - ACEScg
@@ -13,8 +13,11 @@
 //! - Oklab
 //! - CIE RGB
 //!
+//! You can also construct custom [ColorSpace]s
+//! from a combination of primaries, whitepoint and transform function.
+//!
 //! # Design
-//! kolor supports color spaces with 3-component coordinates, such as RGB, LAB, XYZ, HSL and more.
+//! kolor supports color spaces with 3-component color coordinates, such as RGB, LAB, XYZ, HSL and more.
 //!
 //! In the spirit of keeping things simple, kolor uses a single type, [Color], to represent
 //! a color coordinate in any supported color space.
@@ -26,7 +29,7 @@
 //! kolor defines conversions from a source [ColorSpace] to a destination [ColorSpace] as three parts:
 //! - if the source color space is a non-linear coordinate space,
 //!     apply the inverse of its non-linear transform function to convert to its linear color coordinate system
-//! - a linear 3x3 transformation matrix from one linear color coordinate system to another
+//! - a linear 3x3 transformation matrix from the source to the destination linear color coordinate system
 //! - if the destination color space is a non-linear coordinate space,
 //!     apply its non-linear transform function
 //!
@@ -41,10 +44,14 @@
 //! and run these as necessary.
 //! Feel free to port the implementations in [details::transform] to your shaders or other code.
 //!
+//!
 //! ### Gamut-agnostic transforms
-//! Certain non-linear color spaces like CIELAB or HSL can be used with any linear RGB coordinate
-//! system. Use [`ColorSpace::with_transform`] based on the relevant [ColorSpace] to convert to
-//! these color spaces.
+//! Some color models like CIELAB or HSL are intended to provide an alternate view of
+//! some color coordinate systems, and need a reference color space to provide information like
+//! which white point or RGB primaries to use.
+//! To construct these color spaces, refer to associated methods on [ColorSpace] and use an appropriate
+//! reference color space.
+//!
 //!
 //! # Details
 //! kolor can calculate 3x3 conversion matrices between any linear color coordinate systems
@@ -95,6 +102,15 @@ use glam::f32::Mat3;
 #[cfg(not(feature = "f64"))]
 use glam::f32::Vec3;
 
+#[cfg(not(feature = "f64"))]
+pub(crate) use core::f32::consts::PI;
+#[cfg(not(feature = "f64"))]
+pub(crate) use core::f32::consts::TAU;
+#[cfg(feature = "f64")]
+pub(crate) use core::f64::consts::PI;
+#[cfg(feature = "f64")]
+pub(crate) use core::f64::consts::TAU;
+
 pub mod details {
     pub mod cat;
     pub mod color;
@@ -103,6 +119,7 @@ pub mod details {
     #[cfg(feature = "color-matrices")]
     pub mod generated_matrices;
     #[allow(clippy::excessive_precision)]
+    #[allow(non_snake_case)]
     pub mod transform;
     pub mod xyz;
 }
