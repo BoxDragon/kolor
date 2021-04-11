@@ -3,7 +3,7 @@ use crate::{FType, Vec3};
 #[cfg(feature = "serde1")]
 use serde::{Deserialize, Serialize};
 
-/// A [TransformFn] identifies an invertible mapping of color coordinates in a linear [ColorSpace].
+/// A [TransformFn] identifies an invertible mapping of colors in a linear [ColorSpace].
 #[repr(u8)]
 #[derive(Debug, Copy, Clone, PartialEq, Hash, Eq)]
 #[cfg_attr(feature = "serde1", derive(Serialize, Deserialize))]
@@ -14,10 +14,6 @@ pub enum TransformFn {
     sRGB_Gamma,
     /// Oklab conversion from xyz
     Oklab,
-    /// ACEScc is a logarithmic transform
-    // ACES_CC,
-    /// ACEScct is a logarithmic transform with toe
-    // ACES_CCT,
     /// CIE xyY transform
     CIE_xyY,
     /// CIELAB transform
@@ -26,13 +22,26 @@ pub enum TransformFn {
     CIELCh,
     /// CIE 1960 UCS transform
     CIE_1960_UCS,
-    /// CIE 1960 UCS transform in uvV coordinate form
+    /// CIE 1960 UCS transform in uvV form
     CIE_1960_UCS_uvV,
     /// CIE 1964 UVW transform
     CIE_1964_UVW,
+    /// (Hue, Saturation, Lightness),
+    /// where L is defined as the average of the largest and smallest color components
+    HSL,
+    /// (Hue, Saturation, Value),
+    /// where V is defined as the largest component of a color
+    HSV,
+    /// (Hue, Saturation, Intensity),
+    /// where I is defined as the average of the three components
+    HSI,
+    /// ACEScc is a logarithmic transform
+    // ACES_CC,
+    /// ACEScct is a logarithmic transform with toe
+    // ACES_CCT,
     MAX_VALUE,
 }
-/// [RGBPrimaries] is a set of primary colors picked to define an RGB color coordinate systme.
+/// [RGBPrimaries] is a set of primary colors picked to define an RGB color space.
 #[repr(u8)]
 #[derive(Debug, Copy, Clone, PartialEq, Hash, Eq)]
 #[cfg_attr(feature = "serde1", derive(Serialize, Deserialize))]
@@ -47,7 +56,7 @@ pub enum RGBPrimaries {
     AP0,
     AP1,
     CIE_RGB,
-    /// The "absolute" reference XYZ color space
+    /// The reference XYZ color space
     CIE_XYZ,
     MAX_VALUE,
 }
@@ -120,16 +129,24 @@ impl WhitePoint {
     }
 }
 
-/// [ColorSpace] is a coordinate space for colors.
 /// See [spaces][crate::spaces] for defined color spaces.
 ///
-/// A [ColorSpace]'s coordinate system is defined by its [RGBPrimaries],
-/// a [WhitePoint] and optionally a non-linear [TransformFn].
-/// An example of a non-linear transform is the sRGB "opto-eletronic transfer function", or
+/// [ColorSpace] assumes that a color space is one of
+/// - the CIE XYZ color space
+/// - an RGB color space
+/// - an invertible mapping from one the above ([TransformFn])
+///
+/// An example of a [TransformFn] is the sRGB "opto-eletronic transfer function", or
 /// "gamma compensation".
 ///
-/// A linear [ColorSpace] can be thought of as defining a coordinate system in the CIE XYZ color coordinate space,
-/// where the three primaries each define an axis pointing from (0,0,0) in CIE XYZ.
+/// `kolor` makes the distinction between "linear" and "non-linear" color spaces, where a linear
+/// color space can be defined as a linear transformation from the CIE XYZ color space.
+///
+/// [ColorSpace] contains a reference [WhitePoint] to represent a color space's reference illuminant.
+///
+/// A linear RGB [ColorSpace] can be thought of as defining a relative coordinate system in the CIE XYZ
+/// color coordinate space, where three RGB primaries each define an axis pointing from
+/// the black point (0,0,0) in CIE XYZ.
 /// Non-linear [ColorSpace]s - such as sRGB with gamma compensation applied - are defined as a mapping from a linear
 /// [ColorSpace]'s coordinate system.
 #[derive(Debug, Copy, Clone, PartialEq, Hash, Eq)]
@@ -158,7 +175,7 @@ impl ColorSpace {
             transform_fn: TransformFn::NONE,
         }
     }
-    /// Whether the coordinate space has a non-linear transform applied
+    /// Whether the color space has a non-linear transform applied
     pub fn is_linear(&self) -> bool {
         self.transform_fn == TransformFn::NONE
     }
@@ -273,7 +290,7 @@ pub mod color_spaces {
     ];
 }
 
-/// [Color] is a 3-component coordinate in a [ColorSpace].
+/// [Color] is a 3-component vector defined in a [ColorSpace].
 #[derive(Copy, Clone, Debug)]
 #[cfg_attr(feature = "serde1", derive(Serialize, Deserialize))]
 pub struct Color {
@@ -298,7 +315,7 @@ impl Color {
         }
     }
 
-    /// Returns a [Color] with this color coordinate converted into the provided [ColorSpace].
+    /// Returns a [Color] with this color converted into the provided [ColorSpace].
     pub fn to(&self, space: ColorSpace) -> Color {
         let conversion = ColorConversion::new(self.space, space);
         let mut new_color = *self;

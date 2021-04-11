@@ -11,15 +11,23 @@ pub struct ColorTransform {
 impl ColorTransform {
     pub fn new(src_transform: TransformFn, dst_transform: TransformFn) -> Option<Self> {
         use super::transform::*;
-        let (first, second) =
-            if src_transform == TransformFn::NONE || dst_transform == TransformFn::NONE {
-                let f = fn_from_one_way_transform(src_transform, dst_transform)?;
-                (f, None)
-            } else {
-                let first = fn_from_one_way_transform(src_transform, TransformFn::NONE)?;
-                let second = fn_from_one_way_transform(TransformFn::NONE, dst_transform);
-                (first, second)
-            };
+        let from_transform = if src_transform == TransformFn::NONE {
+            None
+        } else {
+            Some(TRANSFORMS_INVERSE[src_transform as usize - 1])
+        };
+        let to_transform = if dst_transform == TransformFn::NONE {
+            None
+        } else {
+            Some(TRANSFORMS[dst_transform as usize - 1])
+        };
+        let (first, second) = if from_transform.is_some() {
+            (from_transform.unwrap(), to_transform)
+        } else if to_transform.is_some() {
+            (to_transform.unwrap(), None)
+        } else {
+            return None;
+        };
         Some(Self { first, second })
     }
     pub fn apply(&self, color: &mut Vec3, white_point: WhitePoint) {
@@ -30,45 +38,74 @@ impl ColorTransform {
     }
 }
 
-fn fn_from_one_way_transform(
-    src_transform: TransformFn,
-    dst_transform: TransformFn,
-) -> Option<fn(&mut Vec3, WhitePoint)> {
-    Some(match (src_transform, dst_transform) {
-        (TransformFn::sRGB_Gamma, TransformFn::NONE) => sRGB_gamma_inverse,
-        (TransformFn::NONE, TransformFn::sRGB_Gamma) => sRGB_gamma,
-        (TransformFn::Oklab, TransformFn::NONE) => Oklab_to_XYZ,
-        (TransformFn::NONE, TransformFn::Oklab) => XYZ_to_Oklab,
-        (TransformFn::CIE_xyY, TransformFn::NONE) => xyY_to_XYZ,
-        (TransformFn::NONE, TransformFn::CIE_xyY) => XYZ_to_xyY,
-        (TransformFn::CIELAB, TransformFn::NONE) => CIELAB_to_XYZ,
-        (TransformFn::NONE, TransformFn::CIELAB) => XYZ_to_CIELAB,
-        (TransformFn::CIELCh, TransformFn::NONE) => CIELCh_to_XYZ,
-        (TransformFn::NONE, TransformFn::CIELCh) => XYZ_to_CIELCh,
-        (TransformFn::CIE_1960_UCS, TransformFn::NONE) => CIE_1960_UCS_to_XYZ,
-        (TransformFn::NONE, TransformFn::CIE_1960_UCS) => XYZ_to_CIE_1960_UCS,
-        (TransformFn::CIE_1960_UCS_uvV, TransformFn::NONE) => CIE_1960_UCS_to_XYZ,
-        (TransformFn::NONE, TransformFn::CIE_1960_UCS_uvV) => XYZ_to_CIE_1960_UCS_uvV,
-        _ => return None,
-    })
-}
+// Keep in sync with TransformFn
+const TRANSFORMS: [fn(&mut Vec3, WhitePoint); 11] = [
+    // sRGB_Gamma,
+    sRGB_gamma,
+    // Oklab,
+    XYZ_to_Oklab,
+    //CIE_xyY,
+    XYZ_to_xyY,
+    //CIELAB,
+    XYZ_to_CIELAB,
+    //CIELCh,
+    XYZ_to_CIELCh,
+    //CIE_1960_UCS,
+    XYZ_to_CIE_1960_UCS,
+    //CIE_1960_UCS_uvV,
+    XYZ_to_CIE_1960_UCS_uvV,
+    //CIE_1964_UVW,
+    XYZ_to_CIE_1964_UVW,
+    //HSL,
+    hsx::RGB_to_HSL,
+    //HSV,
+    hsx::RGB_to_HSV,
+    //HSI,
+    hsx::RGB_to_HSI,
+];
+
+// Keep in sync with TransformFn
+const TRANSFORMS_INVERSE: [fn(&mut Vec3, WhitePoint); 11] = [
+    // sRGB_Gamma,
+    sRGB_gamma_inverse,
+    // Oklab,
+    Oklab_to_XYZ,
+    //CIE_xyY,
+    xyY_to_XYZ,
+    //CIELAB,
+    CIELAB_to_XYZ,
+    //CIELCh,
+    CIELCh_to_XYZ,
+    //CIE_1960_UCS,
+    CIE_1960_UCS_to_XYZ,
+    //CIE_1960_UCS_uvV,
+    CIE_1960_UCS_uvV_to_XYZ,
+    //CIE_1964_UVW,
+    CIE_1964_UVW_to_XYZ,
+    //HSL,
+    hsx::HSL_to_RGB,
+    //HSV,
+    hsx::HSV_to_RGB,
+    //HSI,
+    hsx::HSI_to_RGB,
+];
 
 // Applies the sRGB "opto-eletric transfer function", i.e. gamma compensation
-pub fn sRGB_gamma(srgb: &mut Vec3, _wp: WhitePoint) {
-    let cutoff = srgb.cmplt(Vec3::splat(0.0031308));
-    let higher = Vec3::splat(1.055) * srgb.powf(1.0 / 2.4) - Vec3::splat(0.055);
-    let lower = *srgb * Vec3::splat(12.92);
+pub fn sRGB_gamma(color: &mut Vec3, _wp: WhitePoint) {
+    let cutoff = color.cmplt(Vec3::splat(0.0031308));
+    let higher = Vec3::splat(1.055) * color.powf(1.0 / 2.4) - Vec3::splat(0.055);
+    let lower = *color * Vec3::splat(12.92);
 
-    *srgb = Vec3::select(cutoff, lower, higher);
+    *color = Vec3::select(cutoff, lower, higher);
 }
 
-// Inverse of `srgb_gamma`
-pub fn sRGB_gamma_inverse(srgb: &mut Vec3, _wp: WhitePoint) {
-    let cutoff = srgb.cmplt(Vec3::splat(0.04045));
-    let higher = ((*srgb + Vec3::splat(0.055)) / 1.055).powf(2.4);
-    let lower = *srgb / 12.92;
+// Inverse of `color_gamma`
+pub fn sRGB_gamma_inverse(color: &mut Vec3, _wp: WhitePoint) {
+    let cutoff = color.cmplt(Vec3::splat(0.04045));
+    let higher = ((*color + Vec3::splat(0.055)) / 1.055).powf(2.4);
+    let lower = *color / 12.92;
 
-    *srgb = Vec3::select(cutoff, lower, higher);
+    *color = Vec3::select(cutoff, lower, higher);
 }
 
 #[rustfmt::skip]
@@ -228,25 +265,161 @@ pub fn CIE_1960_xyV_to_uvV(color: &mut Vec3, _wp: WhitePoint) {
 
 // TODO finish implementing this. The wikipedia articles are so convoluted, jeez.
 // CIE 1964 UVW
-// pub fn XYZ_to_CIE_1964_UVW(color: &mut Vec3, wp: WhitePoint) {
-//     // Convert the white point to uvV form
-//     let mut wp_value = Vec3::from_slice_unaligned(wp.values());
-//     XYZ_to_CIE_1960_UCS(&mut wp_value, wp);
-//     CIE_1960_UCS_to_uvV(&mut wp_value);
+pub fn XYZ_to_CIE_1964_UVW(color: &mut Vec3, wp: WhitePoint) {
+    //     // Convert the white point to uvV form
+    //     let mut wp_value = Vec3::from_slice_unaligned(wp.values());
+    //     XYZ_to_CIE_1960_UCS(&mut wp_value, wp);
+    //     CIE_1960_UCS_to_uvV(&mut wp_value);
 
-//     // Convert the color coordinate to uvV form
-//     let mut XYZ = *color;
-//     XYZ_to_CIE_1960_UCS(&mut XYZ, wp);
-//     CIE_1960_UCS_to_uvV(&mut XYZ);
+    //     // Convert the color to uvV form
+    //     let mut XYZ = *color;
+    //     XYZ_to_CIE_1960_UCS(&mut XYZ, wp);
+    //     CIE_1960_UCS_to_uvV(&mut XYZ);
 
-//     // apply the UVW transform
-//     let uvV = XYZ;
-//     let W = 25.0 * color.z.powf(1.0 / 3.0) - 17.0;
-//     let U = 13.0 * W * (uvV.x - wp_value.x);
-//     let V = 13.0 * W * (uvV.y - wp_value.y);
-//     *color = Vec3::new(U, V, W);
-// }
+    //     // apply the UVW transform
+    //     let uvV = XYZ;
+    //     let W = 25.0 * color.z.powf(1.0 / 3.0) - 17.0;
+    //     let U = 13.0 * W * (uvV.x - wp_value.x);
+    //     let V = 13.0 * W * (uvV.y - wp_value.y);
+    //     *color = Vec3::new(U, V, W);
+}
 
-// pub fn CIE_1964_UVW_to_XYZ(color: &mut Vec3, wp: WhitePoint) {
-// TODO
-// }
+pub fn CIE_1964_UVW_to_XYZ(color: &mut Vec3, wp: WhitePoint) {
+    // TODO
+}
+
+/// transforms for Hue/Saturation/X color models, like HSL, HSI, HSV
+pub mod hsx {
+    use super::*;
+    fn HSX_hue_and_chroma_from_RGB(color: &Vec3, x_max: FType, x_min: FType) -> (FType, FType) {
+        let chroma = x_max - x_min;
+        let hue = if chroma == 0.0 {
+            0.0
+        } else if color.x > color.y && color.x > color.z {
+            60.0 * (color.y - color.z) / chroma
+        } else if color.y > color.x && color.y > color.z {
+            60.0 * (2.0 + (color.z - color.x) / chroma)
+        } else {
+            60.0 * (4.0 + (color.x - color.y) / chroma)
+        };
+        let hue = if hue < 0.0 { 360.0 + hue } else { hue };
+        (hue, chroma)
+    }
+
+    pub fn RGB_to_HSL(color: &mut Vec3, _wp: WhitePoint) {
+        RGB_to_HSX(color, |_, x_max, x_min, _| {
+            let lightness = (x_max + x_min) / 2.0;
+            let saturation = if lightness <= 0.0 || lightness >= 1.0 {
+                0.0
+            } else {
+                (x_max - lightness) / lightness.min(1.0 - lightness)
+            };
+            (saturation, lightness)
+        });
+    }
+
+    pub fn RGB_to_HSV(color: &mut Vec3, _wp: WhitePoint) {
+        RGB_to_HSX(color, |_, max, _, chroma| {
+            let value = max;
+            let saturation = if value == 0.0 { 0.0 } else { chroma / value };
+            (saturation, value)
+        });
+    }
+
+    pub fn RGB_to_HSI(color: &mut Vec3, _wp: WhitePoint) {
+        RGB_to_HSX(color, |color, _, min, _| {
+            let intensity = (color.x + color.y + color.z) * (1.0 / 3.0);
+            let saturation = if intensity == 0.0 {
+                0.0
+            } else {
+                1.0 - min / intensity
+            };
+            (saturation, intensity)
+        })
+    }
+
+    fn RGB_to_HSX<F: FnOnce(&mut Vec3, FType, FType, FType) -> (FType, FType)>(
+        color: &mut Vec3,
+        f: F,
+    ) {
+        let x_max = color.x.max(color.y.max(color.z));
+        let x_min = color.x.min(color.y.min(color.z));
+        let (hue, chroma) = HSX_hue_and_chroma_from_RGB(color, x_max, x_min);
+        let (saturation, vli) = f(color, x_max, x_min, chroma);
+
+        color.x = hue;
+        color.y = saturation;
+        color.z = vli;
+    }
+
+    fn HSX_to_RGB<
+        F: FnOnce(
+            &Vec3,
+        ) -> (
+            /* hue_prime: */ FType,
+            /*chroma: */ FType,
+            /*largest_component: */ FType,
+            /*lightness_match:*/ FType,
+        ),
+    >(
+        color: &mut Vec3,
+        f: F,
+    ) {
+        let (hue_prime, chroma, largest_component, lightness_match) = f(color);
+        let (r, g, b) = RGB_from_HCX(hue_prime, chroma, largest_component);
+        color.x = r + lightness_match;
+        color.y = g + lightness_match;
+        color.z = b + lightness_match;
+    }
+    pub fn HSL_to_RGB(color: &mut Vec3, _wp: WhitePoint) {
+        HSX_to_RGB(color, |color| {
+            let chroma = (1.0 - (2.0 * color.z - 1.0).abs()) * color.y;
+            let hue_prime = color.x / 60.0;
+            let largest_component = chroma * (1.0 - (hue_prime % 2.0 - 1.0).abs());
+            let lightness_match = color.z - chroma / 2.0;
+            (chroma, hue_prime, largest_component, lightness_match)
+        });
+    }
+
+    pub fn HSV_to_RGB(color: &mut Vec3, _wp: WhitePoint) {
+        HSX_to_RGB(color, |color| {
+            let chroma = color.z * color.y;
+            let hue_prime = color.x / 60.0;
+            let largest_component = chroma * (1.0 - (hue_prime % 2.0 - 1.0).abs());
+            let lightness_match = color.z - chroma;
+            (chroma, hue_prime, largest_component, lightness_match)
+        });
+    }
+
+    pub fn HSI_to_RGB(color: &mut Vec3, _wp: WhitePoint) {
+        HSX_to_RGB(color, |color| {
+            let hue_prime = color.x / 60.0;
+            let z = 1.0 - (hue_prime % 2.0 - 1.0).abs();
+            let chroma = (3.0 * color.z * color.y) / (1.0 + z);
+            let largest_component = chroma * z;
+            let lightness_match = color.z * (1.0 - color.y);
+            (hue_prime, chroma, largest_component, lightness_match)
+        });
+    }
+
+    fn RGB_from_HCX(
+        hue_prime: FType,
+        chroma: FType,
+        largest_component: FType,
+    ) -> (FType, FType, FType) {
+        let (r, g, b) = if hue_prime < 1.0 {
+            (chroma, largest_component, 0.0)
+        } else if hue_prime < 2.0 {
+            (largest_component, chroma, 0.0)
+        } else if hue_prime < 3.0 {
+            (0.0, chroma, largest_component)
+        } else if hue_prime < 4.0 {
+            (0.0, largest_component, chroma)
+        } else if hue_prime < 5.0 {
+            (largest_component, 0.0, chroma)
+        } else {
+            (chroma, 0.0, largest_component)
+        };
+        (r, g, b)
+    }
+}

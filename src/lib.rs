@@ -1,4 +1,4 @@
-//! kolor implements conversions between 3-component color spaces.
+//! kolor implements conversions between color spaces which use 3-component vectors.
 //!
 //! kolor is intended for use in games or other interactive visual applications,
 //! where it can help implement correct color management and wide color gamut rendering.
@@ -17,49 +17,49 @@
 //! from a combination of primaries, whitepoint and transform function.
 //!
 //! # Design
-//! kolor supports color spaces with 3-component color coordinates, such as RGB, LAB, XYZ, HSL and more.
+//! kolor supports color spaces which use 3-component vectors, such as RGB, LAB, XYZ, HSL and more.
 //!
 //! In the spirit of keeping things simple, kolor uses a single type, [Color], to represent
-//! a color coordinate in any supported color space.
+//! a color in any supported color space.
 //!
 //! kolor recognizes that users may want to perform conversions on colors stored in types defined
 //! by the user. [ColorConversion] represents a conversion between two color spaces
 //! and is intended to be compatible with 3-component vectors in many math libraries.
 //!
 //! kolor defines conversions from a source [ColorSpace] to a destination [ColorSpace] as three parts:
-//! - if the source color space is a non-linear coordinate space,
-//!     apply the inverse of its non-linear transform function to convert to its linear color coordinate system
-//! - a linear 3x3 transformation matrix from the source to the destination linear color coordinate system
-//! - if the destination color space is a non-linear coordinate space,
-//!     apply its non-linear transform function
+//! - if the source color space is non-linear,
+//!     apply the inverse of its transform function to convert to the non-linear color space's reference
+//!     color space (which is always linear)
+//! - a linear 3x3 transformation matrix from the source to the destination linear color space
+//! - if the destination color space is a non-linear color space,
+//!     apply its transform function
 //!
-//! A "non-linear transform function" means any function that is not a linear transformation
+//! A "non-linear transform function" means any function that cannot be expressed as a linear transformation
 //! of the CIE XYZ color space. Examples include the sRGB logarithmic gamma compensation function,
 //! the Oklab transform function, and the HSL/HSV hexagonal/circular transform.
 //!
-//! For non-linear color spaces, many non-linear transform functions are supported
-//! to convert between popular spaces.
-//! For GPU contexts, these implementations clearly can't be used directly, but required transforms
-//! between spaces can be read from a [ColorConversion] value so that the user can implement
-//! and run these as necessary.
+//! For non-linear color spaces, many transform functions are supported
+//! to convert between popular spaces, but for GPU contexts, these implementations clearly can't be used directly.
+//! To implement data-driven conversions, you can read the required operations for transforming between spaces
+//! from a [ColorConversion] value and run these as appropriate.
 //! Feel free to port the implementations in [details::transform] to your shaders or other code.
 //!
 //!
 //! ### Gamut-agnostic transforms
 //! Some color models like CIELAB or HSL are intended to provide an alternate view of
-//! some color coordinate systems, and need a reference color space to provide information like
+//! some linear color spaces, and need a reference color space to provide information like
 //! which white point or RGB primaries to use.
 //! To construct these color spaces, refer to associated methods on [ColorSpace] and use an appropriate
 //! reference color space.
 //!
 //!
 //! # Details
-//! kolor can calculate 3x3 conversion matrices between any linear color coordinate systems
+//! kolor can calculate 3x3 conversion matrices between any linear color space
 //! defined by RGB primaries and a white point. kolor offers APIs for performing
 //! conversions directly, and for extracting the 3x3 matrix to use in a different context,
 //! for example on a GPU.
 //!
-//! ### Generating conversion matrices between RGB coordinate systems
+//! ### Generating conversion matrices between RGB color spaces
 //! [LinearColorConversion][details::conversion::LinearColorConversion] can be used
 //! to generate conversion matrices "offline",
 //! in which case you probably want to use the `f64` feature for better precision.
@@ -79,9 +79,9 @@
 //! Use [ColorSpace::with_whitepoint] to change [WhitePoint][details::color::WhitePoint] for a color space.
 //!  
 //! ### XYZ-RGB conversions
-//! All RGB color spaces use the CIE XYZ color space as its reference, "global" coordinate system.
-//! Functions in [details::xyz] can be used to create conversion matrices to/from an RGB coordinate
-//! system given a set of primaries and a white point.
+//! All supported RGB color spaces use the CIE XYZ color space as its reference color space.
+//! Functions in [details::xyz] can be used to create conversion matrices to/from an RGB color space
+//! given a set of primaries and a white point.
 //!
 //! # no_std support
 //! kolor supports `no_std` by disabling the default-enabled `std` feature and enabling the `libm` feature.
@@ -120,6 +120,7 @@ pub mod details {
     pub mod generated_matrices;
     #[allow(clippy::excessive_precision)]
     #[allow(non_snake_case)]
+    #[allow(clippy::many_single_char_names)]
     pub mod transform;
     pub mod xyz;
 }

@@ -7,7 +7,7 @@ use crate::{ColorSpace, FType, Mat3, Vec3};
 #[cfg(feature = "serde1")]
 use serde::{Deserialize, Serialize};
 
-/// A transformation from one linear color coordinate system to another.
+/// A transformation from one linear color space to another.
 #[derive(Copy, Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde1", derive(Serialize, Deserialize))]
 pub struct LinearColorConversion {
@@ -79,7 +79,7 @@ impl LinearColorConversion {
     }
 }
 
-/// [ColorConversion] defines a conversion of a 3-component color coordinate
+/// [ColorConversion] defines an operation that maps a 3-component vector
 /// from a source [ColorSpace] to a destination [ColorSpace].
 #[derive(Copy, Clone)]
 pub struct ColorConversion {

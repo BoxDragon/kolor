@@ -1,7 +1,7 @@
 //! Implements Chromatic Adaptation Transformation (CAT).
 //!
-//! Chromatic Adaptation Transformation means transforming a color space's
-//! coordinate system from one white point reference to another.
+//! Chromatic Adaptation Transformation means transforming a linear
+//! color space's coordinate system from one white point reference to another.
 //!
 //! [LMSConeSpace] defines the set of supported conversion methods.
 //! [LMSConeSpace::Sharp] is used as a default for conversions by
