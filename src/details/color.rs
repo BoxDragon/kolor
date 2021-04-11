@@ -26,6 +26,8 @@ pub enum TransformFn {
     CIE_1960_UCS_uvV,
     /// CIE 1964 UVW transform
     CIE_1964_UVW,
+    /// CIE 1976 Luv transform
+    CIE_1976_Luv,
     /// (Hue, Saturation, Lightness),
     /// where L is defined as the average of the largest and smallest color components
     HSL,
@@ -35,6 +37,10 @@ pub enum TransformFn {
     /// (Hue, Saturation, Intensity),
     /// where I is defined as the average of the three components
     HSI,
+    /// BT.2100 ICtCp with PQ transfer function
+    ICtCp_PQ,
+    /// BT.2100 ICtCp with HLG transfer function
+    ICtCp_HLG,
     /// ACEScc is a logarithmic transform
     // ACES_CC,
     /// ACEScct is a logarithmic transform with toe

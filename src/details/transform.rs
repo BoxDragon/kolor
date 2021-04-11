@@ -39,7 +39,7 @@ impl ColorTransform {
 }
 
 // Keep in sync with TransformFn
-const TRANSFORMS: [fn(&mut Vec3, WhitePoint); 11] = [
+const TRANSFORMS: [fn(&mut Vec3, WhitePoint); 14] = [
     // sRGB_Gamma,
     sRGB_gamma,
     // Oklab,
@@ -56,16 +56,22 @@ const TRANSFORMS: [fn(&mut Vec3, WhitePoint); 11] = [
     XYZ_to_CIE_1960_UCS_uvV,
     //CIE_1964_UVW,
     XYZ_to_CIE_1964_UVW,
+    //CIE_1976_Luv,
+    XYZ_to_CIE_1976_Luv,
     //HSL,
     hsx::RGB_to_HSL,
     //HSV,
     hsx::RGB_to_HSV,
     //HSI,
     hsx::RGB_to_HSI,
+    //ICtCp_PQ,
+    ICtCp::RGB_to_ICtCp_PQ,
+    //ICtCp_HLG,
+    ICtCp::RGB_to_ICtCp_HLG,
 ];
 
 // Keep in sync with TransformFn
-const TRANSFORMS_INVERSE: [fn(&mut Vec3, WhitePoint); 11] = [
+const TRANSFORMS_INVERSE: [fn(&mut Vec3, WhitePoint); 14] = [
     // sRGB_Gamma,
     sRGB_gamma_inverse,
     // Oklab,
@@ -82,12 +88,18 @@ const TRANSFORMS_INVERSE: [fn(&mut Vec3, WhitePoint); 11] = [
     CIE_1960_UCS_uvV_to_XYZ,
     //CIE_1964_UVW,
     CIE_1964_UVW_to_XYZ,
+    //CIE_1976_Luv,
+    CIE_1976_Luv_to_XYZ,
     //HSL,
     hsx::HSL_to_RGB,
     //HSV,
     hsx::HSV_to_RGB,
     //HSI,
     hsx::HSI_to_RGB,
+    //ICtCp_PQ,
+    ICtCp::ICtCp_PQ_to_RGB,
+    //ICtCp_HLG,
+    ICtCp::ICtCp_HLG_to_RGB,
 ];
 
 // Applies the sRGB "opto-eletric transfer function", i.e. gamma compensation
@@ -265,7 +277,7 @@ pub fn CIE_1960_xyV_to_uvV(color: &mut Vec3, _wp: WhitePoint) {
 
 // TODO finish implementing this. The wikipedia articles are so convoluted, jeez.
 // CIE 1964 UVW
-pub fn XYZ_to_CIE_1964_UVW(color: &mut Vec3, wp: WhitePoint) {
+pub fn XYZ_to_CIE_1964_UVW(_color: &mut Vec3, _wp: WhitePoint) {
     //     // Convert the white point to uvV form
     //     let mut wp_value = Vec3::from_slice_unaligned(wp.values());
     //     XYZ_to_CIE_1960_UCS(&mut wp_value, wp);
@@ -284,8 +296,216 @@ pub fn XYZ_to_CIE_1964_UVW(color: &mut Vec3, wp: WhitePoint) {
     //     *color = Vec3::new(U, V, W);
 }
 
-pub fn CIE_1964_UVW_to_XYZ(color: &mut Vec3, wp: WhitePoint) {
+pub fn CIE_1964_UVW_to_XYZ(_color: &mut Vec3, _wp: WhitePoint) {
     // TODO
+}
+
+// CIE 1976 Luv
+pub fn XYZ_to_CIE_1976_Luv(color: &mut Vec3, wp: WhitePoint) {
+    let U = (4.0 * color.x) / (color.x + (15.0 * color.y) + (3.0 * color.z));
+    let V = (9.0 * color.y) / (color.x + (15.0 * color.y) + (3.0 * color.z));
+
+    let Y = color.y / 100.0;
+    let Y = if Y > 0.008856 {
+        Y.powf(1.0 / 3.0)
+    } else {
+        (7.787 * Y) + (16.0 / 116.0)
+    };
+
+    let wp_values = wp.values();
+    let ref_U =
+        (4.0 * wp_values[0]) / (wp_values[0] + (15.0 * wp_values[1]) + (3.0 * wp_values[2]));
+    let ref_V =
+        (9.0 * wp_values[1]) / (wp_values[0] + (15.0 * wp_values[1]) + (3.0 * wp_values[2]));
+
+    color.x = (116.0 * Y) - 16.0;
+    color.y = 13.0 * color.x * (U - ref_U);
+    color.z = 13.0 * color.x * (V - ref_V);
+}
+
+// Inverse of CIE 1976 Luv
+pub fn CIE_1976_Luv_to_XYZ(color: &mut Vec3, wp: WhitePoint) {
+    let Y = (color.x + 16.0) / 116.0;
+    let Y = if Y.powf(3.0) > 0.008856 {
+        Y.powf(3.0)
+    } else {
+        (Y - 16.0 / 116.0) / 7.787
+    };
+
+    let wp_values = wp.values();
+    let ref_U =
+        (4.0 * wp_values[0]) / (wp_values[0] + (15.0 * wp_values[1]) + (3.0 * wp_values[2]));
+    let ref_V =
+        (9.0 * wp_values[1]) / (wp_values[0] + (15.0 * wp_values[1]) + (3.0 * wp_values[2]));
+
+    let U = color.y / (13.0 * color.x) + ref_U;
+    let V = color.z / (13.0 * color.x) + ref_V;
+
+    color.y = Y * 100.0;
+    color.x = -(9.0 * color.y * U) / ((U - 4.0) * V - U * V);
+    color.z = (9.0 * color.y - (15.0 * V * color.y) - (V * color.x)) / (3.0 * V);
+}
+
+/// ARIB STD-B67 or "Hybrid Log-Gamma"
+#[allow(non_upper_case_globals)]
+mod HLG {
+    use super::*;
+    const HLG_a: FType = 0.17883277;
+    const HLG_b: FType = 0.28466892;
+    const HLG_c: FType = 0.55991073;
+    const HLG_r: FType = 0.5;
+    fn HLG_channel(E: FType) -> FType {
+        if E <= 1.0 {
+            HLG_r * E.sqrt()
+        } else {
+            HLG_a * (E - HLG_b).ln() + HLG_c
+        }
+    }
+    /// ARIB STD-B67 or "Hybrid Log-Gamma"
+    #[allow(non_upper_case_globals)]
+    pub fn hybrid_log_gamma(color: &mut Vec3, _wp: WhitePoint) {
+        color.x = HLG_channel(color.x);
+        color.y = HLG_channel(color.y);
+        color.z = HLG_channel(color.z);
+    }
+
+    /// Inverse of ARIB STD-B67 or "Hybrid Log-Gamma"
+    #[allow(non_upper_case_globals)]
+    pub fn hybrid_log_gamma_inverse(color: &mut Vec3, _wp: WhitePoint) {
+        fn HLG_channel_inverse(E_p: FType) -> FType {
+            if E_p <= HLG_channel(1.0) {
+                (E_p / HLG_r).powf(2.0)
+            } else {
+                ((E_p - HLG_c) / HLG_a).exp() + HLG_b
+            }
+        }
+        color.x = HLG_channel_inverse(color.x);
+        color.y = HLG_channel_inverse(color.y);
+        color.z = HLG_channel_inverse(color.z);
+    }
+}
+
+/// SMPTE ST 2084:2014 EOTF
+#[allow(non_upper_case_globals)]
+mod PQ {
+    use super::*;
+    const L_p: FType = 10000.0;
+    const M_1: FType = 0.1593017578125;
+    const M_2: FType = 78.84375;
+    const M_1_d: FType = 1.0 / M_1;
+    const M_2_d: FType = 1.0 / M_2;
+    const C_1: FType = 0.8359375;
+    const C_2: FType = 18.8515625;
+    const C_3: FType = 18.6875;
+    /// SMPTE ST 2084:2014 perceptual inverse electro-optical transfer function
+    pub fn ST_2084_PQ_inverse(color: &mut Vec3) {
+        fn apply_channel(f: FType) -> FType {
+            let Y_p = (f / L_p).powf(M_1);
+            ((C_1 + C_2 * Y_p) / (C_3 * Y_p + 1.0)).powf(M_2)
+        }
+        color.x = apply_channel(color.x);
+        color.y = apply_channel(color.y);
+        color.z = apply_channel(color.z);
+    }
+
+    /// SMPTE ST 2084:2014 perceptual electro-optical transfer function
+    pub fn ST_2084_PQ(color: &mut Vec3) {
+        fn apply_channel(f: FType) -> FType {
+            let V_p = f.powf(M_2_d);
+
+            let n = (V_p - C_1).max(0.0);
+            let L = (n / (C_2 - C_3 * V_p)).powf(M_1_d);
+            L_p * L
+        }
+        color.x = apply_channel(color.x);
+        color.y = apply_channel(color.y);
+        color.z = apply_channel(color.z);
+    }
+}
+
+/// BT.2100 ICtCp
+pub mod ICtCp {
+    use super::*;
+    #[rustfmt::skip]
+    #[allow(non_upper_case_globals)]
+    const ICtCp_LMS: [FType; 9] = [
+        0.412109, 0.523926, 0.0639648,
+        0.166748, 0.720459, 0.112793,
+        0.0241699, 0.0754395, 0.900391,
+    ];
+
+    #[rustfmt::skip]
+    #[allow(non_upper_case_globals)]
+    const ICtCp_LMS_INVERSE: [FType; 9] = [
+        3.43661, -2.50646, 0.0698459,
+        -0.79133, 1.9836, -0.192271,
+        -0.0259498, -0.0989138, 1.12486,
+    ];
+
+    /// ICtCp with the HLG transfer function
+    pub fn RGB_to_ICtCp_HLG(color: &mut Vec3, wp: WhitePoint) {
+        #[rustfmt::skip]
+        #[allow(non_upper_case_globals)]
+        const ICtCp_From_HLG: [FType; 9] = [
+            0.5, 0.5, 0.0,
+            0.88501, -1.82251, 0.9375,
+            2.31934, -2.24902, -0.0703125,
+        ];
+        let to_lms = Mat3::from_cols_array(&ICtCp_LMS).transpose();
+        let mut lms = to_lms * *color;
+        HLG::hybrid_log_gamma(&mut lms, wp);
+        let hlg_to_ICtCp = Mat3::from_cols_array(&ICtCp_From_HLG).transpose();
+        *color = hlg_to_ICtCp * lms;
+    }
+
+    /// Inverse ICtCp with the HLG transfer function
+    pub fn ICtCp_HLG_to_RGB(color: &mut Vec3, wp: WhitePoint) {
+        #[rustfmt::skip]
+        #[allow(non_upper_case_globals)]
+        const ICtCp_From_HLG_INVERSE: [FType; 9] = [
+            0.999998, 0.0157186, 0.209581,
+            1.0, -0.0157186, -0.209581,
+            1.0, 1.02127, -0.605275,
+        ];
+        let ICtCp_to_hlg = Mat3::from_cols_array(&ICtCp_From_HLG_INVERSE).transpose();
+        let mut lms_hlg = ICtCp_to_hlg * *color;
+        HLG::hybrid_log_gamma_inverse(&mut lms_hlg, wp);
+        let lms = lms_hlg;
+        let lms_to_rgb = Mat3::from_cols_array(&ICtCp_LMS_INVERSE).transpose();
+        *color = lms_to_rgb * lms;
+    }
+
+    /// ICtCp with the PQ transfer function
+    pub fn RGB_to_ICtCp_PQ(color: &mut Vec3, _wp: WhitePoint) {
+        #[rustfmt::skip]
+        #[allow(non_upper_case_globals)]
+        const ICtCp_From_PQ: [FType; 9] = [
+            0.5, 0.5, 0.0,
+            1.61377, -3.32349, 1.70972,
+            4.37817, -4.24561, -0.132568
+        ];
+        let to_lms = Mat3::from_cols_array(&ICtCp_LMS).transpose();
+        let mut lms = to_lms * *color;
+        PQ::ST_2084_PQ_inverse(&mut lms);
+        let pq_to_ICtCp = Mat3::from_cols_array(&ICtCp_From_PQ).transpose();
+        *color = pq_to_ICtCp * lms;
+    }
+    /// Inverse ICtCp with the PQ transfer function
+    pub fn ICtCp_PQ_to_RGB(color: &mut Vec3, _wp: WhitePoint) {
+        #[rustfmt::skip]
+        #[allow(non_upper_case_globals)]
+        const ICtCp_From_PQ_INVERSE: [FType; 9] = [
+            1.0, 0.00860904, 0.11103,
+            1.0, -0.00860904, -0.11103,
+            1.0, 0.560031, -0.320627
+        ];
+        let ICtCp_to_pq = Mat3::from_cols_array(&ICtCp_From_PQ_INVERSE).transpose();
+        let mut lms_pq = ICtCp_to_pq * *color;
+        PQ::ST_2084_PQ(&mut lms_pq);
+        let lms = lms_pq;
+        let lms_to_rgb = Mat3::from_cols_array(&ICtCp_LMS_INVERSE).transpose();
+        *color = lms_to_rgb * lms;
+    }
 }
 
 /// transforms for Hue/Saturation/X color models, like HSL, HSI, HSV
