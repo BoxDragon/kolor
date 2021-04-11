@@ -4,14 +4,16 @@
 //! where it can help implement correct color management and wide color gamut rendering.
 //!
 //! # Named color spaces
-//! Named color space definitions can be found in [spaces].
+//! Named color space definitions can be found in [spaces]. Some notable color spaces and models:
 //!
 //! - sRGB / linear sRGB / BT.709
 //! - BT.2020
 //! - ACEScg
 //! - ACES2065-1
 //! - Oklab
-//! - CIE RGB
+//! - CIE LAB / Lch / Luv / xyY / uvV
+//! - HSL / HSV / HSI
+//! - ICtCp
 //!
 //! You can also construct custom [ColorSpace]s
 //! from a combination of primaries, whitepoint and transform function.
