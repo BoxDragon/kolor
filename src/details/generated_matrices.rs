@@ -11,13 +11,6 @@ pub const BT_709_D65_TO_BT_2020_D65: [FType; 9] = [
 
 
 #[rustfmt::skip]
-pub const BT_709_D65_TO_BT_709_D65: [FType; 9] = [
-    0.9999999999999997, -0.0000000000000000971445146547012, 0.0,
-    0.000000000000000042500725161431774, 0.9999999999999998, 0.000000000000000013877787807814457,
-    0.000000000000000003469446951953614, 0.000000000000000027755575615628914, 1.0];
-
-
-#[rustfmt::skip]
 pub const BT_709_D65_TO_AP1_D60: [FType; 9] = [
     0.6141439932086278, 0.3348473538601437, 0.05100865293122844,
     0.07058736865623247, 0.9163972000879493, 0.01301543125581777,
@@ -234,9 +227,6 @@ pub fn const_conversion_matrix(
 
         (RGBPrimaries::BT_709, WhitePoint::D65, RGBPrimaries::BT_2020, WhitePoint::D65) => {
             Some(Mat3::from_cols_array(&BT_709_D65_TO_BT_2020_D65).transpose())
-        }
-        (RGBPrimaries::BT_709, WhitePoint::D65, RGBPrimaries::BT_709, WhitePoint::D65) => {
-            Some(Mat3::from_cols_array(&BT_709_D65_TO_BT_709_D65).transpose())
         }
         (RGBPrimaries::BT_709, WhitePoint::D65, RGBPrimaries::AP1, WhitePoint::D60) => {
             Some(Mat3::from_cols_array(&BT_709_D65_TO_AP1_D60).transpose())

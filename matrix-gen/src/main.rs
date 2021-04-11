@@ -5,11 +5,11 @@ fn main() {
     let mut conversions = Vec::new();
     for src in &kolor::spaces::ALL_COLOR_SPACES {
         for dst in &kolor::spaces::ALL_COLOR_SPACES {
-            if src == dst {
-                continue;
-            }
             let linear_src = src.as_linear();
             let linear_dst = dst.as_linear();
+            if linear_src == linear_dst {
+                continue;
+            }
             if conversions.iter().any(|c: &LinearColorConversion| {
                 c.input_space() == linear_src && c.output_space() == linear_dst
             }) {
