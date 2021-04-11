@@ -57,8 +57,8 @@ pub enum RGBPrimaries {
     NONE,
     /// BT.709 is the sRGB primaries.
     BT_709,
+    // BT_2020 uses the same primaries as BT_2100
     BT_2020,
-    BT_2100,
     AP0,
     AP1,
     CIE_RGB,
@@ -72,7 +72,6 @@ impl RGBPrimaries {
             Self::NONE | Self::MAX_VALUE => &[[0.0; 2]; 3],
             Self::BT_709 => &[[0.64, 0.33], [0.30, 0.60], [0.15, 0.06]],
             Self::BT_2020 => &[[0.708, 0.292], [0.17, 0.797], [0.131, 0.046]],
-            Self::BT_2100 => &[[0.708, 0.292], [0.170, 0.797], [0.131, 0.046]],
             Self::AP0 => &[[0.7347, 0.2653], [0.0000, 1.0000], [0.0001, -0.0770]],
             Self::AP1 => &[[0.713, 0.293], [0.165, 0.830], [0.128, 0.044]],
             Self::CIE_RGB => &[[0.7350, 0.2650], [0.2740, 0.7170], [0.1670, 0.0090]],
@@ -252,6 +251,7 @@ impl ColorSpace {
         Self::new(RGBPrimaries::CIE_XYZ, self.white_point, TransformFn::CIELCh)
     }
 }
+#[allow(non_upper_case_globals)]
 pub mod color_spaces {
     use super::*;
 
@@ -268,24 +268,45 @@ pub mod color_spaces {
         WhitePoint::D65,
         TransformFn::sRGB_Gamma,
     );
+
     /// ACEScg is a linear encoding in [AP1 primaries][RGBPrimaries::AP1]
     /// with a [D60 whitepoint][WhitePoint::D60].
     pub const ACES_CG: ColorSpace = ColorSpace::linear(RGBPrimaries::AP1, WhitePoint::D60);
+
     /// ACES2065-1 is a linear encoding in [AP0 primaries][RGBPrimaries::AP0] with a [D60 whitepoint][WhitePoint::D60].
     pub const ACES2065_1: ColorSpace = ColorSpace::linear(RGBPrimaries::AP0, WhitePoint::D60);
+
     /// CIE RGB is the original RGB space, defined in [CIE RGB primaries][RGBPrimaries::CIE_RGB]
     /// with white point [E][WhitePoint::E].
     pub const CIE_RGB: ColorSpace = ColorSpace::linear(RGBPrimaries::CIE_RGB, WhitePoint::E);
+
     /// BT.2020 is a linear encoding in [BT.2020 primaries][RGBPrimaries::BT_2020]
     /// with a [D65 white point][WhitePoint::D65]
+    /// BT.2100 has the same color space as BT.2020.
     pub const BT_2020: ColorSpace = ColorSpace::linear(RGBPrimaries::BT_2020, WhitePoint::D65);
+
     /// Oklab is a non-linear encoding in [XYZ][RGBPrimaries::CIE_XYZ],
     /// with a [D65 whitepoint][WhitePoint::D65]
     pub const OKLAB: ColorSpace =
         ColorSpace::new(RGBPrimaries::CIE_XYZ, WhitePoint::D65, TransformFn::Oklab);
 
+    /// ICtCp_PQ is a non-linear encoding in [BT.2020 primaries][RGBPrimaries::BT_2020],
+    /// with a [D65 whitepoint][WhitePoint::D65], using the PQ transfer function
+    pub const ICtCp_PQ: ColorSpace = ColorSpace::new(
+        RGBPrimaries::BT_2020,
+        WhitePoint::D65,
+        TransformFn::ICtCp_PQ,
+    );
+    /// ICtCp_HLG is a non-linear encoding in [BT.2020 primaries][RGBPrimaries::BT_2020],
+    /// with a [D65 whitepoint][WhitePoint::D65], using the HLG transfer function
+    pub const ICtCp_HLG: ColorSpace = ColorSpace::new(
+        RGBPrimaries::BT_2020,
+        WhitePoint::D65,
+        TransformFn::ICtCp_HLG,
+    );
+
     /// Array containing all built-in color spaces.
-    pub const ALL_COLOR_SPACES: [ColorSpace; 7] = [
+    pub const ALL_COLOR_SPACES: [ColorSpace; 9] = [
         color_spaces::BT_709,
         color_spaces::BT_2020,
         color_spaces::SRGB,
@@ -293,6 +314,8 @@ pub mod color_spaces {
         color_spaces::ACES2065_1,
         color_spaces::CIE_RGB,
         color_spaces::OKLAB,
+        color_spaces::ICtCp_PQ,
+        color_spaces::ICtCp_HLG,
     ];
 }
 
