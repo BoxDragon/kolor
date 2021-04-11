@@ -19,10 +19,20 @@
 //! from a combination of primaries, whitepoint and transform function.
 //!
 //! # Design
-//! kolor supports color spaces which use 3-component vectors, such as RGB, LAB, XYZ, HSL and more.
+//! kolor aims to supports all color spaces and color models which use 3-component vectors,
+//! such as RGB, LAB, XYZ, HSL and more.
 //!
 //! In the spirit of keeping things simple, kolor uses a single type, [Color], to represent
 //! a color in any supported color space.
+//!
+//! kolor can programmatically generate an efficient conversion between any two color spaces
+//! by using the CIE XYZ color space as a "connecting space", meaning all supported color spaces
+//! only need to support a conversion to a reference color space that is a linear
+//! transform of the CIE XYZ color space.
+//!
+//! Transformations between linear color spaces can be implemented with a 3x3 matrix, and
+//! since 3x3 matrices are composable, these matrices can be pre-composed and applied to a color
+//! with a single multiply.
 //!
 //! kolor recognizes that users may want to perform conversions on colors stored in types defined
 //! by the user. [ColorConversion] represents a conversion between two color spaces
