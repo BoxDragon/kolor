@@ -41,11 +41,13 @@ pub enum TransformFn {
     ICtCp_PQ,
     /// BT.2100 ICtCp with HLG transfer function
     ICtCp_HLG,
-    /// ACEScc is a logarithmic transform
+    // ACEScc is a logarithmic transform
     // ACES_CC,
-    /// ACEScct is a logarithmic transform with toe
+    // ACEScct is a logarithmic transform with toe
     // ACES_CCT,
-    MAX_VALUE,
+}
+impl TransformFn {
+    pub const ENUM_COUNT: TransformFn = TransformFn::ICtCp_HLG;
 }
 /// [RGBPrimaries] is a set of primary colors picked to define an RGB color space.
 #[repr(u8)]
@@ -64,12 +66,12 @@ pub enum RGBPrimaries {
     CIE_RGB,
     /// The reference XYZ color space
     CIE_XYZ,
-    MAX_VALUE,
 }
 impl RGBPrimaries {
+    pub const ENUM_COUNT: RGBPrimaries = RGBPrimaries::CIE_XYZ;
     pub const fn values(&self) -> &[[FType; 2]; 3] {
         match self {
-            Self::NONE | Self::MAX_VALUE => &[[0.0; 2]; 3],
+            Self::NONE => &[[0.0; 2]; 3],
             Self::BT_709 => &[[0.64, 0.33], [0.30, 0.60], [0.15, 0.06]],
             Self::BT_2020 => &[[0.708, 0.292], [0.17, 0.797], [0.131, 0.046]],
             Self::AP0 => &[[0.7347, 0.2653], [0.0000, 1.0000], [0.0001, -0.0770]],
@@ -112,12 +114,12 @@ pub enum WhitePoint {
     F7,
     /// Ultralume 40, Philips TL84
     F11,
-    MAX_VALUE,
 }
 impl WhitePoint {
+    pub const ENUM_COUNT: WhitePoint = WhitePoint::F11;
     pub const fn values(&self) -> &'static [FType; 3] {
         match self {
-            Self::NONE | Self::MAX_VALUE => &[0.0, 0.0, 0.0],
+            Self::NONE => &[0.0, 0.0, 0.0],
             Self::A => &[1.09850, 1.00000, 0.35585],
             Self::B => &[0.99072, 1.00000, 0.85223],
             Self::C => &[0.98074, 1.00000, 1.18232],
@@ -347,16 +349,16 @@ impl Color {
     /// Returns a [Color] with this color converted into the provided [ColorSpace].
     pub fn to(&self, space: ColorSpace) -> Color {
         let conversion = ColorConversion::new(self.space, space);
-        let mut new_color = *self;
-        conversion.apply(&mut new_color.value);
-        new_color.space = space;
-        new_color
+        let new_color = conversion.convert(self.value);
+        Color {
+            space,
+            value: new_color,
+        }
     }
     pub fn to_linear(&self) -> Color {
         if self.space.is_linear() {
             *self
         } else {
-            let mut new_color = *self;
             let transform = ColorTransform::new(self.space.transform_function(), TransformFn::NONE)
                 .unwrap_or_else(|| {
                     panic!(
@@ -364,9 +366,11 @@ impl Color {
                         self.space.transform_function()
                     )
                 });
-            transform.apply(&mut new_color.value, self.space().white_point);
-            new_color.space = self.space.as_linear();
-            new_color
+            let new_color_value = transform.apply(self.value, self.space().white_point);
+            Self {
+                value: new_color_value,
+                space: self.space.as_linear(),
+            }
         }
     }
 }
@@ -381,32 +385,29 @@ mod test {
     #[test]
     fn linear_srgb_to_aces_cg() {
         let conversion = LinearColorConversion::new(spaces::LINEAR_SRGB, spaces::ACES_CG);
-        let mut result = Vec3::new(0.35, 0.2, 0.8);
-        conversion.apply(&mut result);
+        let result = conversion.convert(Vec3::new(0.35, 0.2, 0.8));
         assert_eq!(result, Vec3::new(0.32276854, 0.21838512, 0.72592676));
     }
 
     #[test]
     fn linear_srgb_to_cie_rgb() {
         let conversion = ColorConversion::new(spaces::LINEAR_SRGB, spaces::CIE_RGB);
-        let mut result = Vec3::new(0.35, 0.2, 0.8);
-        conversion.apply(&mut result);
+        let result = conversion.convert(Vec3::new(0.35, 0.2, 0.8));
         assert_eq!(result, Vec3::new(0.3252983, 0.27015764, 0.73588717));
     }
 
     #[test]
     fn linear_srgb_to_aces_2065_1() {
         let conversion = ColorConversion::new(spaces::LINEAR_SRGB, spaces::ACES2065_1);
-        let mut result = Vec3::new(0.35, 0.2, 0.8);
-        conversion.apply(&mut result);
+        let result = conversion.convert(Vec3::new(0.35, 0.2, 0.8));
         assert_eq!(result, Vec3::new(0.3741492, 0.27154857, 0.7261116));
     }
 
     #[test]
     fn linear_srgb_to_srgb() {
         let transform = ColorTransform::new(TransformFn::NONE, TransformFn::sRGB_Gamma).unwrap();
-        let mut result = Vec3::new(0.35, 0.1, 0.8);
-        transform.apply(&mut result, WhitePoint::D65);
+        let mut test = Vec3::new(0.35, 0.1, 0.8);
+        let result = transform.apply(test, WhitePoint::D65);
         assert_eq!(result, Vec3::new(0.6262097, 0.34919018, 0.9063317));
     }
 
@@ -425,8 +426,7 @@ mod test {
     #[test]
     fn aces_cg_to_srgb() {
         let conversion = ColorConversion::new(spaces::ACES_CG, spaces::SRGB);
-        let mut result = Vec3::new(0.35, 0.1, 0.8);
-        conversion.apply(&mut result);
+        let result = conversion.convert(Vec3::new(0.35, 0.1, 0.8));
         assert_eq!(result, Vec3::new(0.46201152, 0.06078783, 0.8996733));
     }
 

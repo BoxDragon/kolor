@@ -5,10 +5,11 @@ use crate::{FType, Mat3, Vec3, PI, TAU};
 /// or its inverse.
 #[derive(Copy, Clone)]
 pub struct ColorTransform {
-    first: for<'r> fn(&'r mut Vec3, WhitePoint),
-    second: Option<for<'r> fn(&'r mut Vec3, WhitePoint)>,
+    first: for<'r> fn(Vec3, WhitePoint) -> Vec3,
+    second: Option<for<'r> fn(Vec3, WhitePoint) -> Vec3>,
 }
 impl ColorTransform {
+    #[inline]
     pub fn new(src_transform: TransformFn, dst_transform: TransformFn) -> Option<Self> {
         use super::transform::*;
         let from_transform = if src_transform == TransformFn::NONE {
@@ -30,16 +31,19 @@ impl ColorTransform {
         };
         Some(Self { first, second })
     }
-    pub fn apply(&self, color: &mut Vec3, white_point: WhitePoint) {
-        (self.first)(color, white_point);
+    #[inline(always)]
+    #[inline]
+    pub fn apply(&self, color: Vec3, white_point: WhitePoint) -> Vec3 {
+        let mut color = (self.first)(color, white_point);
         if let Some(second) = self.second {
-            second(color, white_point);
+            color = second(color, white_point);
         }
+        color
     }
 }
 
 // Keep in sync with TransformFn
-const TRANSFORMS: [fn(&mut Vec3, WhitePoint); 14] = [
+const TRANSFORMS: [fn(Vec3, WhitePoint) -> Vec3; 14] = [
     // sRGB_Gamma,
     sRGB_gamma,
     // Oklab,
@@ -71,7 +75,7 @@ const TRANSFORMS: [fn(&mut Vec3, WhitePoint); 14] = [
 ];
 
 // Keep in sync with TransformFn
-const TRANSFORMS_INVERSE: [fn(&mut Vec3, WhitePoint); 14] = [
+const TRANSFORMS_INVERSE: [fn(Vec3, WhitePoint) -> Vec3; 14] = [
     // sRGB_Gamma,
     sRGB_gamma_inverse,
     // Oklab,
@@ -103,21 +107,23 @@ const TRANSFORMS_INVERSE: [fn(&mut Vec3, WhitePoint); 14] = [
 ];
 
 // Applies the sRGB "opto-eletric transfer function", i.e. gamma compensation
-pub fn sRGB_gamma(color: &mut Vec3, _wp: WhitePoint) {
+#[inline]
+pub fn sRGB_gamma(color: Vec3, _wp: WhitePoint) -> Vec3 {
     let cutoff = color.cmplt(Vec3::splat(0.0031308));
     let higher = Vec3::splat(1.055) * color.powf(1.0 / 2.4) - Vec3::splat(0.055);
-    let lower = *color * Vec3::splat(12.92);
+    let lower = color * Vec3::splat(12.92);
 
-    *color = Vec3::select(cutoff, lower, higher);
+    Vec3::select(cutoff, lower, higher)
 }
 
 // Inverse of `color_gamma`
-pub fn sRGB_gamma_inverse(color: &mut Vec3, _wp: WhitePoint) {
+#[inline]
+pub fn sRGB_gamma_inverse(color: Vec3, _wp: WhitePoint) -> Vec3 {
     let cutoff = color.cmplt(Vec3::splat(0.04045));
-    let higher = ((*color + Vec3::splat(0.055)) / 1.055).powf(2.4);
-    let lower = *color / 12.92;
+    let higher = ((color + Vec3::splat(0.055)) / 1.055).powf(2.4);
+    let lower = color / 12.92;
 
-    *color = Vec3::select(cutoff, lower, higher);
+    Vec3::select(cutoff, lower, higher)
 }
 
 #[rustfmt::skip]
@@ -132,34 +138,39 @@ const OKLAB_M_2: [FType;9] =
    1.9779984951,-2.4285922050,0.4505937099,
    0.0259040371,0.7827717662,-0.8086757660];
 
-pub fn XYZ_to_Oklab(color: &mut Vec3, _wp: WhitePoint) {
-    let mut lms = Mat3::from_cols_array(&OKLAB_M_1).transpose() * *color;
+#[inline]
+pub fn XYZ_to_Oklab(color: Vec3, _wp: WhitePoint) -> Vec3 {
+    let mut lms = Mat3::from_cols_array(&OKLAB_M_1).transpose() * color;
     lms = lms.powf(1.0 / 3.0); // non-linearity
-    *color = Mat3::from_cols_array(&OKLAB_M_2).transpose() * lms
+    Mat3::from_cols_array(&OKLAB_M_2).transpose() * lms
 }
 
-pub fn Oklab_to_XYZ(color: &mut Vec3, _wp: WhitePoint) {
-    let mut lms = Mat3::from_cols_array(&OKLAB_M_2).transpose().inverse() * *color;
+#[inline]
+pub fn Oklab_to_XYZ(color: Vec3, _wp: WhitePoint) -> Vec3 {
+    let mut lms = Mat3::from_cols_array(&OKLAB_M_2).transpose().inverse() * color;
     lms = lms.powf(3.0); // reverse non-linearity
-    *color = Mat3::from_cols_array(&OKLAB_M_1).transpose().inverse() * lms
+    Mat3::from_cols_array(&OKLAB_M_1).transpose().inverse() * lms
 }
 
-pub fn XYZ_to_xyY(color: &mut Vec3, _wp: WhitePoint) {
+#[inline]
+pub fn XYZ_to_xyY(color: Vec3, _wp: WhitePoint) -> Vec3 {
     let x = color.x / (color.x + color.y + color.z);
     let y = color.y / (color.x + color.y + color.z);
     let Y = color.y;
-    *color = Vec3::new(x, y, Y);
+    Vec3::new(x, y, Y)
 }
 
-pub fn xyY_to_XYZ(color: &mut Vec3, _wp: WhitePoint) {
+#[inline]
+pub fn xyY_to_XYZ(color: Vec3, _wp: WhitePoint) -> Vec3 {
     let x = (color.z / color.y) * color.x;
     let y = color.z;
     let z = (color.z / color.y) * (1.0 - color.x - color.y);
-    *color = Vec3::new(x, y, z);
+    Vec3::new(x, y, z)
 }
 
 // CIELAB
-pub fn XYZ_to_CIELAB(color: &mut Vec3, wp: WhitePoint) {
+#[inline]
+pub fn XYZ_to_CIELAB(color: Vec3, wp: WhitePoint) -> Vec3 {
     fn magic_f(v: FType) -> FType {
         if v > 0.008856 {
             v.powf(1.0 / 3.0)
@@ -174,10 +185,11 @@ pub fn XYZ_to_CIELAB(color: &mut Vec3, wp: WhitePoint) {
     let l = 116.0 * y - 16.0;
     let a = 500.0 * (x - y);
     let b = 200.0 * (y - z);
-    *color = Vec3::new(l, a, b);
+    Vec3::new(l, a, b)
 }
 
-pub fn CIELAB_to_XYZ(color: &mut Vec3, wp: WhitePoint) {
+#[inline]
+pub fn CIELAB_to_XYZ(color: Vec3, wp: WhitePoint) -> Vec3 {
     fn magic_f_inverse(v: FType) -> FType {
         if v > 0.008856 {
             v.powf(3.0)
@@ -192,19 +204,22 @@ pub fn CIELAB_to_XYZ(color: &mut Vec3, wp: WhitePoint) {
     let X = wp_value[0] * magic_f_inverse(L + a);
     let Y = wp_value[1] * magic_f_inverse(L);
     let Z = wp_value[2] * magic_f_inverse(L - b);
-    *color = Vec3::new(X, Y, Z);
+    Vec3::new(X, Y, Z)
 }
 
 // CIELCh
-pub fn XYZ_to_CIELCh(color: &mut Vec3, wp: WhitePoint) {
+#[inline]
+pub fn XYZ_to_CIELCh(color: Vec3, wp: WhitePoint) -> Vec3 {
     XYZ_to_CIELAB(color, wp);
-    CIELAB_to_CIELCh(color);
+    CIELAB_to_CIELCh(color)
 }
-pub fn CIELCh_to_XYZ(color: &mut Vec3, wp: WhitePoint) {
+#[inline]
+pub fn CIELCh_to_XYZ(color: Vec3, wp: WhitePoint) -> Vec3 {
     CIELCh_to_CIELAB(color);
-    CIELAB_to_XYZ(color, wp);
+    CIELAB_to_XYZ(color, wp)
 }
-pub fn CIELAB_to_CIELCh(color: &mut Vec3) {
+#[inline]
+pub fn CIELAB_to_CIELCh(color: Vec3) -> Vec3 {
     let mut h = color.z.atan2(color.y);
     if h > 0.0 {
         h = (h / PI) * 180.0;
@@ -212,72 +227,80 @@ pub fn CIELAB_to_CIELCh(color: &mut Vec3) {
         h = 360.0 - (h.abs() / PI) * 180.0
     }
     let C = (color.y * color.y + color.z * color.z).sqrt();
-    color.y = C;
-    color.z = h;
+    Vec3::new(color.x, C, h)
 }
-pub fn CIELCh_to_CIELAB(color: &mut Vec3) {
+#[inline]
+pub fn CIELCh_to_CIELAB(color: Vec3) -> Vec3 {
     let angle = (color.z / 360.0) * TAU;
     let a = color.y * angle.cos();
     let b = color.y * angle.sin();
-    color.y = a;
-    color.z = b;
+    Vec3::new(color.x, a, b)
 }
 
 // CIE 1960 UCS
-pub fn XYZ_to_CIE_1960_UCS(color: &mut Vec3, _wp: WhitePoint) {
+#[inline]
+pub fn XYZ_to_CIE_1960_UCS(color: Vec3, _wp: WhitePoint) -> Vec3 {
     let U = (2.0 / 3.0) * color.x;
     let V = color.y;
     let W = 0.5 * (-color.x + 3.0 * color.y + color.z);
-    *color = Vec3::new(U, V, W);
+    Vec3::new(U, V, W)
 }
 
-pub fn CIE_1960_UCS_to_XYZ(color: &mut Vec3, _wp: WhitePoint) {
+#[inline]
+pub fn CIE_1960_UCS_to_XYZ(color: Vec3, _wp: WhitePoint) -> Vec3 {
     let X = (3.0 / 2.0) * color.x;
     let Y = color.y;
     let Z = (3.0 / 2.0) * color.x - 3.0 * color.y + 2.0 * color.z;
-    *color = Vec3::new(X, Y, Z)
+    Vec3::new(X, Y, Z)
 }
 
-pub fn CIE_1960_UCS_uvV_to_XYZ(color: &mut Vec3, wp: WhitePoint) {
+#[inline]
+pub fn CIE_1960_UCS_uvV_to_XYZ(color: Vec3, wp: WhitePoint) -> Vec3 {
     CIE_1960_uvV_to_UCS(color, wp);
-    CIE_1960_UCS_to_XYZ(color, wp);
+    CIE_1960_UCS_to_XYZ(color, wp)
 }
-pub fn XYZ_to_CIE_1960_UCS_uvV(color: &mut Vec3, wp: WhitePoint) {
+#[inline]
+pub fn XYZ_to_CIE_1960_UCS_uvV(color: Vec3, wp: WhitePoint) -> Vec3 {
     XYZ_to_CIE_1960_UCS(color, wp);
-    CIE_1960_UCS_to_uvV(color, wp);
+    CIE_1960_UCS_to_uvV(color, wp)
 }
 
-pub fn CIE_1960_UCS_to_uvV(color: &mut Vec3, _wp: WhitePoint) {
+#[inline]
+pub fn CIE_1960_UCS_to_uvV(color: Vec3, _wp: WhitePoint) -> Vec3 {
     let u_v_w = color.x + color.y + color.z;
 
     let u = color.x / u_v_w;
     let v = color.y / u_v_w;
-    *color = Vec3::new(u, v, color.y)
+    Vec3::new(u, v, color.y)
 }
 
-pub fn CIE_1960_uvV_to_UCS(color: &mut Vec3, _wp: WhitePoint) {
+#[inline]
+pub fn CIE_1960_uvV_to_UCS(color: Vec3, _wp: WhitePoint) -> Vec3 {
     let U = color.z * (color.x / color.y);
     let W = -color.z * (color.x + color.y - 1.0) / color.y;
-    *color = Vec3::new(U, color.y, W);
+    Vec3::new(U, color.y, W)
 }
 
-pub fn CIE_1960_uvV_to_xyV(color: &mut Vec3, _wp: WhitePoint) {
+#[inline]
+pub fn CIE_1960_uvV_to_xyV(color: Vec3, _wp: WhitePoint) -> Vec3 {
     let d = 2.0 * color.x - 8.0 * color.y - 4.0;
     let x = 3.0 * (color.x / d);
     let y = 2.0 * (color.y / d);
-    *color = Vec3::new(x, y, color.z);
+    Vec3::new(x, y, color.z)
 }
 
-pub fn CIE_1960_xyV_to_uvV(color: &mut Vec3, _wp: WhitePoint) {
+#[inline]
+pub fn CIE_1960_xyV_to_uvV(color: Vec3, _wp: WhitePoint) -> Vec3 {
     let d = 12.0 * color.y - 2.0 * color.x + 3.0;
     let u = 4.0 * (color.x / d);
     let v = 6.0 * (color.y / d);
-    *color = Vec3::new(u, v, color.z);
+    Vec3::new(u, v, color.z)
 }
 
 // TODO finish implementing this. The wikipedia articles are so convoluted, jeez.
 // CIE 1964 UVW
-pub fn XYZ_to_CIE_1964_UVW(_color: &mut Vec3, _wp: WhitePoint) {
+#[inline]
+pub fn XYZ_to_CIE_1964_UVW(color: Vec3, _wp: WhitePoint) -> Vec3 {
     //     // Convert the white point to uvV form
     //     let mut wp_value = Vec3::from_slice_unaligned(wp.values());
     //     XYZ_to_CIE_1960_UCS(&mut wp_value, wp);
@@ -294,14 +317,18 @@ pub fn XYZ_to_CIE_1964_UVW(_color: &mut Vec3, _wp: WhitePoint) {
     //     let U = 13.0 * W * (uvV.x - wp_value.x);
     //     let V = 13.0 * W * (uvV.y - wp_value.y);
     //     *color = Vec3::new(U, V, W);
+    color
 }
 
-pub fn CIE_1964_UVW_to_XYZ(_color: &mut Vec3, _wp: WhitePoint) {
+#[inline]
+pub fn CIE_1964_UVW_to_XYZ(color: Vec3, _wp: WhitePoint) -> Vec3 {
     // TODO
+    color
 }
 
 // CIE 1976 Luv
-pub fn XYZ_to_CIE_1976_Luv(color: &mut Vec3, wp: WhitePoint) {
+#[inline]
+pub fn XYZ_to_CIE_1976_Luv(color: Vec3, wp: WhitePoint) -> Vec3 {
     let U = (4.0 * color.x) / (color.x + (15.0 * color.y) + (3.0 * color.z));
     let V = (9.0 * color.y) / (color.x + (15.0 * color.y) + (3.0 * color.z));
 
@@ -318,13 +345,16 @@ pub fn XYZ_to_CIE_1976_Luv(color: &mut Vec3, wp: WhitePoint) {
     let ref_V =
         (9.0 * wp_values[1]) / (wp_values[0] + (15.0 * wp_values[1]) + (3.0 * wp_values[2]));
 
-    color.x = (116.0 * Y) - 16.0;
-    color.y = 13.0 * color.x * (U - ref_U);
-    color.z = 13.0 * color.x * (V - ref_V);
+    Vec3::new(
+        (116.0 * Y) - 16.0,
+        13.0 * color.x * (U - ref_U),
+        13.0 * color.x * (V - ref_V),
+    )
 }
 
 // Inverse of CIE 1976 Luv
-pub fn CIE_1976_Luv_to_XYZ(color: &mut Vec3, wp: WhitePoint) {
+#[inline]
+pub fn CIE_1976_Luv_to_XYZ(color: Vec3, wp: WhitePoint) -> Vec3 {
     let Y = (color.x + 16.0) / 116.0;
     let Y = if Y.powf(3.0) > 0.008856 {
         Y.powf(3.0)
@@ -341,9 +371,11 @@ pub fn CIE_1976_Luv_to_XYZ(color: &mut Vec3, wp: WhitePoint) {
     let U = color.y / (13.0 * color.x) + ref_U;
     let V = color.z / (13.0 * color.x) + ref_V;
 
-    color.y = Y * 100.0;
-    color.x = -(9.0 * color.y * U) / ((U - 4.0) * V - U * V);
-    color.z = (9.0 * color.y - (15.0 * V * color.y) - (V * color.x)) / (3.0 * V);
+    Vec3::new(
+        Y * 100.0,
+        -(9.0 * color.y * U) / ((U - 4.0) * V - U * V),
+        (9.0 * color.y - (15.0 * V * color.y) - (V * color.x)) / (3.0 * V),
+    )
 }
 
 /// ARIB STD-B67 or "Hybrid Log-Gamma"
@@ -363,15 +395,19 @@ mod HLG {
     }
     /// ARIB STD-B67 or "Hybrid Log-Gamma"
     #[allow(non_upper_case_globals)]
-    pub fn hybrid_log_gamma(color: &mut Vec3, _wp: WhitePoint) {
-        color.x = HLG_channel(color.x);
-        color.y = HLG_channel(color.y);
-        color.z = HLG_channel(color.z);
+    #[inline]
+    pub fn hybrid_log_gamma(color: Vec3, _wp: WhitePoint) -> Vec3 {
+        Vec3::new(
+            HLG_channel(color.x),
+            HLG_channel(color.y),
+            HLG_channel(color.z),
+        )
     }
 
     /// Inverse of ARIB STD-B67 or "Hybrid Log-Gamma"
     #[allow(non_upper_case_globals)]
-    pub fn hybrid_log_gamma_inverse(color: &mut Vec3, _wp: WhitePoint) {
+    #[inline]
+    pub fn hybrid_log_gamma_inverse(color: Vec3, _wp: WhitePoint) -> Vec3 {
         fn HLG_channel_inverse(E_p: FType) -> FType {
             if E_p <= HLG_channel(1.0) {
                 (E_p / HLG_r).powf(2.0)
@@ -379,9 +415,11 @@ mod HLG {
                 ((E_p - HLG_c) / HLG_a).exp() + HLG_b
             }
         }
-        color.x = HLG_channel_inverse(color.x);
-        color.y = HLG_channel_inverse(color.y);
-        color.z = HLG_channel_inverse(color.z);
+        Vec3::new(
+            HLG_channel_inverse(color.x),
+            HLG_channel_inverse(color.y),
+            HLG_channel_inverse(color.z),
+        )
     }
 }
 
@@ -398,18 +436,22 @@ mod PQ {
     const C_2: FType = 18.8515625;
     const C_3: FType = 18.6875;
     /// SMPTE ST 2084:2014 perceptual inverse electro-optical transfer function
-    pub fn ST_2084_PQ_inverse(color: &mut Vec3) {
+    #[inline]
+    pub fn ST_2084_PQ_inverse(color: Vec3) -> Vec3 {
         fn apply_channel(f: FType) -> FType {
             let Y_p = (f / L_p).powf(M_1);
             ((C_1 + C_2 * Y_p) / (C_3 * Y_p + 1.0)).powf(M_2)
         }
-        color.x = apply_channel(color.x);
-        color.y = apply_channel(color.y);
-        color.z = apply_channel(color.z);
+        Vec3::new(
+            apply_channel(color.x),
+            apply_channel(color.y),
+            apply_channel(color.z),
+        )
     }
 
     /// SMPTE ST 2084:2014 perceptual electro-optical transfer function
-    pub fn ST_2084_PQ(color: &mut Vec3) {
+    #[inline]
+    pub fn ST_2084_PQ(color: Vec3) -> Vec3 {
         fn apply_channel(f: FType) -> FType {
             let V_p = f.powf(M_2_d);
 
@@ -417,9 +459,11 @@ mod PQ {
             let L = (n / (C_2 - C_3 * V_p)).powf(M_1_d);
             L_p * L
         }
-        color.x = apply_channel(color.x);
-        color.y = apply_channel(color.y);
-        color.z = apply_channel(color.z);
+        Vec3::new(
+            apply_channel(color.x),
+            apply_channel(color.y),
+            apply_channel(color.z),
+        )
     }
 }
 
@@ -443,7 +487,8 @@ pub mod ICtCp {
     ];
 
     /// ICtCp with the HLG transfer function
-    pub fn RGB_to_ICtCp_HLG(color: &mut Vec3, wp: WhitePoint) {
+    #[inline]
+    pub fn RGB_to_ICtCp_HLG(color: Vec3, wp: WhitePoint) -> Vec3 {
         #[rustfmt::skip]
         #[allow(non_upper_case_globals)]
         const ICtCp_From_HLG: [FType; 9] = [
@@ -452,14 +497,15 @@ pub mod ICtCp {
             2.31934, -2.24902, -0.0703125,
         ];
         let to_lms = Mat3::from_cols_array(&ICtCp_LMS).transpose();
-        let mut lms = to_lms * *color;
-        HLG::hybrid_log_gamma(&mut lms, wp);
+        let lms = to_lms * color;
+        let hlg = HLG::hybrid_log_gamma(lms, wp);
         let hlg_to_ICtCp = Mat3::from_cols_array(&ICtCp_From_HLG).transpose();
-        *color = hlg_to_ICtCp * lms;
+        hlg_to_ICtCp * hlg
     }
 
     /// Inverse ICtCp with the HLG transfer function
-    pub fn ICtCp_HLG_to_RGB(color: &mut Vec3, wp: WhitePoint) {
+    #[inline]
+    pub fn ICtCp_HLG_to_RGB(color: Vec3, wp: WhitePoint) -> Vec3 {
         #[rustfmt::skip]
         #[allow(non_upper_case_globals)]
         const ICtCp_From_HLG_INVERSE: [FType; 9] = [
@@ -468,15 +514,15 @@ pub mod ICtCp {
             1.0, 1.02127, -0.605275,
         ];
         let ICtCp_to_hlg = Mat3::from_cols_array(&ICtCp_From_HLG_INVERSE).transpose();
-        let mut lms_hlg = ICtCp_to_hlg * *color;
-        HLG::hybrid_log_gamma_inverse(&mut lms_hlg, wp);
-        let lms = lms_hlg;
+        let lms_hlg = ICtCp_to_hlg * color;
+        let lms = HLG::hybrid_log_gamma_inverse(lms_hlg, wp);
         let lms_to_rgb = Mat3::from_cols_array(&ICtCp_LMS_INVERSE).transpose();
-        *color = lms_to_rgb * lms;
+        lms_to_rgb * lms
     }
 
     /// ICtCp with the PQ transfer function
-    pub fn RGB_to_ICtCp_PQ(color: &mut Vec3, _wp: WhitePoint) {
+    #[inline]
+    pub fn RGB_to_ICtCp_PQ(color: Vec3, _wp: WhitePoint) -> Vec3 {
         #[rustfmt::skip]
         #[allow(non_upper_case_globals)]
         const ICtCp_From_PQ: [FType; 9] = [
@@ -485,13 +531,14 @@ pub mod ICtCp {
             4.37817, -4.24561, -0.132568
         ];
         let to_lms = Mat3::from_cols_array(&ICtCp_LMS).transpose();
-        let mut lms = to_lms * *color;
-        PQ::ST_2084_PQ_inverse(&mut lms);
+        let lms = to_lms * color;
+        let pq = PQ::ST_2084_PQ_inverse(lms);
         let pq_to_ICtCp = Mat3::from_cols_array(&ICtCp_From_PQ).transpose();
-        *color = pq_to_ICtCp * lms;
+        pq_to_ICtCp * pq
     }
     /// Inverse ICtCp with the PQ transfer function
-    pub fn ICtCp_PQ_to_RGB(color: &mut Vec3, _wp: WhitePoint) {
+    #[inline]
+    pub fn ICtCp_PQ_to_RGB(color: Vec3, _wp: WhitePoint) -> Vec3 {
         #[rustfmt::skip]
         #[allow(non_upper_case_globals)]
         const ICtCp_From_PQ_INVERSE: [FType; 9] = [
@@ -500,18 +547,17 @@ pub mod ICtCp {
             1.0, 0.560031, -0.320627
         ];
         let ICtCp_to_pq = Mat3::from_cols_array(&ICtCp_From_PQ_INVERSE).transpose();
-        let mut lms_pq = ICtCp_to_pq * *color;
-        PQ::ST_2084_PQ(&mut lms_pq);
-        let lms = lms_pq;
+        let lms_pq = ICtCp_to_pq * color;
+        let lms = PQ::ST_2084_PQ(lms_pq);
         let lms_to_rgb = Mat3::from_cols_array(&ICtCp_LMS_INVERSE).transpose();
-        *color = lms_to_rgb * lms;
+        lms_to_rgb * lms
     }
 }
 
 /// transforms for Hue/Saturation/X color models, like HSL, HSI, HSV
 pub mod hsx {
     use super::*;
-    fn HSX_hue_and_chroma_from_RGB(color: &Vec3, x_max: FType, x_min: FType) -> (FType, FType) {
+    fn HSX_hue_and_chroma_from_RGB(color: Vec3, x_max: FType, x_min: FType) -> (FType, FType) {
         let chroma = x_max - x_min;
         let hue = if chroma == 0.0 {
             0.0
@@ -526,7 +572,8 @@ pub mod hsx {
         (hue, chroma)
     }
 
-    pub fn RGB_to_HSL(color: &mut Vec3, _wp: WhitePoint) {
+    #[inline]
+    pub fn RGB_to_HSL(color: Vec3, _wp: WhitePoint) -> Vec3 {
         RGB_to_HSX(color, |_, x_max, x_min, _| {
             let lightness = (x_max + x_min) / 2.0;
             let saturation = if lightness <= 0.0 || lightness >= 1.0 {
@@ -535,18 +582,20 @@ pub mod hsx {
                 (x_max - lightness) / lightness.min(1.0 - lightness)
             };
             (saturation, lightness)
-        });
+        })
     }
 
-    pub fn RGB_to_HSV(color: &mut Vec3, _wp: WhitePoint) {
+    #[inline]
+    pub fn RGB_to_HSV(color: Vec3, _wp: WhitePoint) -> Vec3 {
         RGB_to_HSX(color, |_, max, _, chroma| {
             let value = max;
             let saturation = if value == 0.0 { 0.0 } else { chroma / value };
             (saturation, value)
-        });
+        })
     }
 
-    pub fn RGB_to_HSI(color: &mut Vec3, _wp: WhitePoint) {
+    #[inline]
+    pub fn RGB_to_HSI(color: Vec3, _wp: WhitePoint) -> Vec3 {
         RGB_to_HSX(color, |color, _, min, _| {
             let intensity = (color.x + color.y + color.z) * (1.0 / 3.0);
             let saturation = if intensity == 0.0 {
@@ -558,23 +607,23 @@ pub mod hsx {
         })
     }
 
-    fn RGB_to_HSX<F: FnOnce(&mut Vec3, FType, FType, FType) -> (FType, FType)>(
-        color: &mut Vec3,
+    #[inline(always)]
+    fn RGB_to_HSX<F: FnOnce(Vec3, FType, FType, FType) -> (FType, FType)>(
+        color: Vec3,
         f: F,
-    ) {
+    ) -> Vec3 {
         let x_max = color.x.max(color.y.max(color.z));
         let x_min = color.x.min(color.y.min(color.z));
         let (hue, chroma) = HSX_hue_and_chroma_from_RGB(color, x_max, x_min);
         let (saturation, vli) = f(color, x_max, x_min, chroma);
 
-        color.x = hue;
-        color.y = saturation;
-        color.z = vli;
+        Vec3::new(hue, saturation, vli)
     }
 
+    #[inline(always)]
     fn HSX_to_RGB<
         F: FnOnce(
-            &Vec3,
+            Vec3,
         ) -> (
             /* hue_prime: */ FType,
             /*chroma: */ FType,
@@ -582,36 +631,41 @@ pub mod hsx {
             /*lightness_match:*/ FType,
         ),
     >(
-        color: &mut Vec3,
+        color: Vec3,
         f: F,
-    ) {
+    ) -> Vec3 {
         let (hue_prime, chroma, largest_component, lightness_match) = f(color);
         let (r, g, b) = RGB_from_HCX(hue_prime, chroma, largest_component);
-        color.x = r + lightness_match;
-        color.y = g + lightness_match;
-        color.z = b + lightness_match;
+        Vec3::new(
+            r + lightness_match,
+            g + lightness_match,
+            b + lightness_match,
+        )
     }
-    pub fn HSL_to_RGB(color: &mut Vec3, _wp: WhitePoint) {
+    #[inline]
+    pub fn HSL_to_RGB(color: Vec3, _wp: WhitePoint) -> Vec3 {
         HSX_to_RGB(color, |color| {
             let chroma = (1.0 - (2.0 * color.z - 1.0).abs()) * color.y;
             let hue_prime = color.x / 60.0;
             let largest_component = chroma * (1.0 - (hue_prime % 2.0 - 1.0).abs());
             let lightness_match = color.z - chroma / 2.0;
             (chroma, hue_prime, largest_component, lightness_match)
-        });
+        })
     }
 
-    pub fn HSV_to_RGB(color: &mut Vec3, _wp: WhitePoint) {
+    #[inline]
+    pub fn HSV_to_RGB(color: Vec3, _wp: WhitePoint) -> Vec3 {
         HSX_to_RGB(color, |color| {
             let chroma = color.z * color.y;
             let hue_prime = color.x / 60.0;
             let largest_component = chroma * (1.0 - (hue_prime % 2.0 - 1.0).abs());
             let lightness_match = color.z - chroma;
             (chroma, hue_prime, largest_component, lightness_match)
-        });
+        })
     }
 
-    pub fn HSI_to_RGB(color: &mut Vec3, _wp: WhitePoint) {
+    #[inline]
+    pub fn HSI_to_RGB(color: Vec3, _wp: WhitePoint) -> Vec3 {
         HSX_to_RGB(color, |color| {
             let hue_prime = color.x / 60.0;
             let z = 1.0 - (hue_prime % 2.0 - 1.0).abs();
@@ -619,9 +673,10 @@ pub mod hsx {
             let largest_component = chroma * z;
             let lightness_match = color.z * (1.0 - color.y);
             (hue_prime, chroma, largest_component, lightness_match)
-        });
+        })
     }
 
+    #[inline(always)]
     fn RGB_from_HCX(
         hue_prime: FType,
         chroma: FType,

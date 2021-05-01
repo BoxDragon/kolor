@@ -23,8 +23,8 @@ impl LinearColorConversion {
     pub fn output_space(&self) -> ColorSpace {
         self.output_space
     }
-    pub fn apply(&self, color: &mut Vec3) {
-        *color = self.mat * *color;
+    pub fn convert(&self, color: Vec3) -> Vec3 {
+        self.mat * color
     }
     pub fn matrix(&self) -> Mat3 {
         self.mat
@@ -177,20 +177,20 @@ impl ColorConversion {
     pub fn dst_space(&self) -> ColorSpace {
         self.dst_space
     }
-    pub fn apply_float(&self, color: &mut [FType; 3]) {
-        let mut vec3 = Vec3::from_slice_unaligned(color);
-        self.apply(&mut vec3);
-        *color = vec3.into();
+    pub fn convert_float(&self, color: &mut [FType; 3]) {
+        let vec3 = Vec3::from_slice_unaligned(color);
+        *color = self.convert(vec3).into();
     }
-    pub fn apply(&self, color: &mut Vec3) {
+    pub fn convert(&self, mut color: Vec3) -> Vec3 {
         if let Some(src_transform) = self.src_transform.as_ref() {
-            src_transform.apply(color, self.src_space.white_point());
+            color = src_transform.apply(color, self.src_space.white_point());
         }
         if let Some(transform) = self.linear_transform.as_ref() {
-            transform.apply(color);
+            color = transform.convert(color);
         }
         if let Some(dst_transform) = self.dst_transform.as_ref() {
-            dst_transform.apply(color, self.dst_space.white_point());
+            color = dst_transform.apply(color, self.dst_space.white_point());
         }
+        color
     }
 }
