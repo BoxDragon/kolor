@@ -101,18 +101,18 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 #[cfg(feature = "f64")]
-type FType = f64;
+pub type FType = f64;
 #[cfg(feature = "f64")]
-use glam::f64::DMat3 as Mat3;
+pub use glam::f64::DMat3 as Mat3;
 #[cfg(feature = "f64")]
-use glam::f64::DVec3 as Vec3;
+pub use glam::f64::DVec3 as Vec3;
 
 #[cfg(not(feature = "f64"))]
-type FType = f32;
+pub type FType = f32;
 #[cfg(not(feature = "f64"))]
-use glam::f32::Mat3;
+pub use glam::f32::Mat3;
 #[cfg(not(feature = "f64"))]
-use glam::f32::Vec3;
+pub use glam::f32::Vec3;
 
 #[cfg(not(feature = "f64"))]
 pub(crate) use core::f32::consts::PI;
