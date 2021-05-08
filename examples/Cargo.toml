@@ -5,10 +5,11 @@ authors = ["Sébastien Crozet <developer@crozet.re>"]
 edition = "2018"
 default-run = "all_examples"
 publish = false
+license = "MIT OR Apache-2.0"
 
 [[bin]]
 name = "all_examples"
 path = "./all_examples.rs"
 
 [dependencies]
-kolor = { path = "../build/kolor" }
+kolor = { path = "../build/kolor", version = "0.1.2" }
