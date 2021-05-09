@@ -63,6 +63,12 @@ pub enum RGBPrimaries {
     BT_2020,
     AP0,
     AP1,
+    /// P3 is the primaries for DCI-P3 and the variations with different white points
+    P3,
+    ADOBE_1998,
+    ADOBE_WIDE,
+    APPLE,
+    PRO_PHOTO,
     CIE_RGB,
     /// The reference XYZ color space
     CIE_XYZ,
@@ -76,6 +82,15 @@ impl RGBPrimaries {
             Self::BT_2020 => &[[0.708, 0.292], [0.17, 0.797], [0.131, 0.046]],
             Self::AP0 => &[[0.7347, 0.2653], [0.0000, 1.0000], [0.0001, -0.0770]],
             Self::AP1 => &[[0.713, 0.293], [0.165, 0.830], [0.128, 0.044]],
+            Self::ADOBE_1998 => &[[0.64, 0.33], [0.21, 0.71], [0.15, 0.06]],
+            Self::ADOBE_WIDE => &[[0.735, 0.265], [0.115, 0.826], [0.157, 0.018]],
+            Self::PRO_PHOTO => &[
+                [0.734699, 0.265301],
+                [0.159597, 0.840403],
+                [0.036598, 0.000105],
+            ],
+            Self::APPLE => &[[0.625, 0.34], [0.28, 0.595], [0.155, 0.07]],
+            Self::P3 => &[[0.680, 0.320], [0.265, 0.690], [0.150, 0.060]],
             Self::CIE_RGB => &[[0.7350, 0.2650], [0.2740, 0.7170], [0.1670, 0.0090]],
             Self::CIE_XYZ => &[[1.0, 0.0], [0.0, 1.0], [0.0, 0.0]],
         }
@@ -108,6 +123,8 @@ pub enum WhitePoint {
     D65,
     /// North sky daylight
     D75,
+    /// P3-DCI white point, sort of greenish
+    P3_DCI,
     /// Cool fluorescent
     F2,
     /// Daylight fluorescent, D65 simulator
@@ -128,6 +145,7 @@ impl WhitePoint {
             Self::D60 => &[0.9523, 1.00000, 1.00859],
             Self::D65 => &[0.95047, 1.00000, 1.08883],
             Self::D75 => &[0.94972, 1.00000, 1.22638],
+            Self::P3_DCI => &[0.89458689458, 1.00000, 0.95441595441],
             Self::E => &[1.00000, 1.00000, 1.00000],
             Self::F2 => &[0.99186, 1.00000, 0.67393],
             Self::F7 => &[0.95041, 1.00000, 1.08747],
@@ -307,8 +325,38 @@ pub mod color_spaces {
         TransformFn::ICtCp_HLG,
     );
 
+    /// Display P3 by Apple is a linear encoding in [P3 primaries][RGBPrimaries::P3]
+    /// with a [D65 white point][WhitePoint::D65]
+    pub const DISPLAY_P3: ColorSpace = ColorSpace::linear(RGBPrimaries::P3, WhitePoint::D65);
+
+    /// P3-D60 (ACES Cinema) is a linear encoding in [P3 primaries][RGBPrimaries::P3]
+    /// with a [D60 white point][WhitePoint::D60]
+    pub const P3_D60: ColorSpace = ColorSpace::linear(RGBPrimaries::P3, WhitePoint::D60);
+
+    /// P3-DCI (Theater) is a linear encoding in [P3 primaries][RGBPrimaries::P3]
+    /// with a [P3-DCI white point][WhitePoint::P3_DCI]
+    pub const P3_THEATER: ColorSpace = ColorSpace::linear(RGBPrimaries::P3, WhitePoint::P3_DCI);
+
+    /// Adobe RGB (1998) is a linear encoding in [Adobe 1998 primaries][RGBPrimaries::ADOBE_1998]
+    /// with a [D65 white point][WhitePoint::D65]
+    pub const ADOBE_1998: ColorSpace =
+        ColorSpace::linear(RGBPrimaries::ADOBE_1998, WhitePoint::D65);
+
+    /// Adobe Wide Gamut RGB is a linear encoding in [Adobe Wide primaries][RGBPrimaries::ADOBE_WIDE]
+    /// with a [D50 white point][WhitePoint::D50]
+    pub const ADOBE_WIDE: ColorSpace =
+        ColorSpace::linear(RGBPrimaries::ADOBE_WIDE, WhitePoint::D50);
+
+    /// Pro Photo RGB is a linear encoding in [Pro Photo primaries][RGBPrimaries::PRO_PHOTO]
+    /// with a [D50 white point][WhitePoint::D50]
+    pub const PRO_PHOTO: ColorSpace = ColorSpace::linear(RGBPrimaries::PRO_PHOTO, WhitePoint::D50);
+
+    /// Apple RGB is a linear encoding in [Apple primaries][RGBPrimaries::APPLE]
+    /// with a [D65 white point][WhitePoint::D65]
+    pub const APPLE: ColorSpace = ColorSpace::linear(RGBPrimaries::APPLE, WhitePoint::D65);
+
     /// Array containing all built-in color spaces.
-    pub const ALL_COLOR_SPACES: [ColorSpace; 9] = [
+    pub const ALL_COLOR_SPACES: [ColorSpace; 16] = [
         color_spaces::BT_709,
         color_spaces::BT_2020,
         color_spaces::SRGB,
@@ -318,6 +366,13 @@ pub mod color_spaces {
         color_spaces::OKLAB,
         color_spaces::ICtCp_PQ,
         color_spaces::ICtCp_HLG,
+        color_spaces::PRO_PHOTO,
+        color_spaces::APPLE,
+        color_spaces::P3_D60,
+        color_spaces::P3_THEATER,
+        color_spaces::DISPLAY_P3,
+        color_spaces::ADOBE_1998,
+        color_spaces::ADOBE_WIDE,
     ];
 }
 
@@ -406,7 +461,7 @@ mod test {
     #[test]
     fn linear_srgb_to_srgb() {
         let transform = ColorTransform::new(TransformFn::NONE, TransformFn::sRGB_Gamma).unwrap();
-        let mut test = Vec3::new(0.35, 0.1, 0.8);
+        let test = Vec3::new(0.35, 0.1, 0.8);
         let result = transform.apply(test, WhitePoint::D65);
         assert_eq!(result, Vec3::new(0.6262097, 0.34919018, 0.9063317));
     }
