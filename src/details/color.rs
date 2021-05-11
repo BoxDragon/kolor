@@ -391,7 +391,7 @@ pub mod color_spaces {
     pub const APPLE: ColorSpace = ColorSpace::linear(RGBPrimaries::APPLE, WhitePoint::D65);
 
     /// Array containing all built-in color spaces.
-    pub const ALL_COLOR_SPACES: [ColorSpace; 20] = [
+    pub const ALL_COLOR_SPACES: [ColorSpace; 21] = [
         color_spaces::LINEAR_SRGB,
         color_spaces::ENCODED_SRGB,
         color_spaces::BT_709,
@@ -410,6 +410,7 @@ pub mod color_spaces {
         color_spaces::P3_D60,
         color_spaces::P3_THEATER,
         color_spaces::DISPLAY_P3,
+        color_spaces::ENCODED_DISPLAY_P3,
         color_spaces::ADOBE_1998,
         color_spaces::ADOBE_WIDE,
     ];
