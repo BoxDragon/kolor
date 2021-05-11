@@ -330,7 +330,7 @@ pub mod color_spaces {
     pub const ENCODED_BT_2100_PQ: ColorSpace = ColorSpace::new(
         RGBPrimaries::BT_2020,
         WhitePoint::D65,
-        TransformFn::BT_601_709_2020,
+        TransformFn::PQ,
     );
 
     /// Oklab is a non-linear encoding in [XYZ][RGBPrimaries::CIE_XYZ],
