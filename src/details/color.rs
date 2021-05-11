@@ -351,7 +351,7 @@ pub mod color_spaces {
     );
 
     /// Encoded sRGB is [Display P3][DISPLAY_P3] with the [sRGB OETF](TransformFn::sRGB) applied.
-    pub const ENCODED_DISPLALY_P3: ColorSpace = ColorSpace::new(
+    pub const ENCODED_DISPLAY_P3: ColorSpace = ColorSpace::new(
         RGBPrimaries::P3,
         WhitePoint::D65,
         TransformFn::sRGB,
