@@ -350,6 +350,13 @@ pub mod color_spaces {
         TransformFn::ICtCp_HLG,
     );
 
+    /// Encoded sRGB is [Display P3][DISPLAY_P3] with the [sRGB OETF](TransformFn::sRGB) applied.
+    pub const ENCODED_DISPLALY_P3: ColorSpace = ColorSpace::new(
+        RGBPrimaries::P3,
+        WhitePoint::D65,
+        TransformFn::sRGB,
+    );
+
     /// Display P3 by Apple is a linear encoding in [P3 primaries][RGBPrimaries::P3]
     /// with a [D65 white point][WhitePoint::D65]
     pub const DISPLAY_P3: ColorSpace = ColorSpace::linear(RGBPrimaries::P3, WhitePoint::D65);
