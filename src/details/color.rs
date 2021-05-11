@@ -159,12 +159,14 @@ impl WhitePoint {
     }
 }
 
+/// A color space defined in data by its [Primaries][RGBPrimaries], [white point][WhitePoint], and an optional [invertible transform function][TransformFn].
+///
 /// See [spaces][crate::spaces] for defined color spaces.
 ///
 /// [ColorSpace] assumes that a color space is one of
 /// - the CIE XYZ color space
 /// - an RGB color space
-/// - an invertible mapping from one the above ([TransformFn])
+/// - a color space which may be defined as an invertible mapping from one the above ([TransformFn])
 ///
 /// An example of a [TransformFn] is the sRGB "opto-eletronic transfer function", or
 /// "gamma compensation".
@@ -177,7 +179,8 @@ impl WhitePoint {
 /// A linear RGB [ColorSpace] can be thought of as defining a relative coordinate system in the CIE XYZ
 /// color coordinate space, where three RGB primaries each define an axis pointing from
 /// the black point (0,0,0) in CIE XYZ.
-/// Non-linear [ColorSpace]s - such as sRGB with gamma compensation applied - are defined as a mapping from a linear
+///
+/// Non-linear [ColorSpace]s - such as sRGB with gamma compensation applied - are defined as a non-linear mapping from a linear
 /// [ColorSpace]'s coordinate system.
 #[derive(Debug, Copy, Clone, PartialEq, Hash, Eq)]
 #[cfg_attr(feature = "serde1", derive(Serialize, Deserialize))]
