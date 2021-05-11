@@ -72,7 +72,7 @@ const TRANSFORMS: [fn(Vec3, WhitePoint) -> Vec3; 16] = [
     ICtCp::RGB_to_ICtCp_PQ,
     //ICtCp_HLG,
     ICtCp::RGB_to_ICtCp_HLG,
-    //BT_601_709_2020,
+    //BT_601,
     bt601_oetf,
     //PQ,
     ST_2084_PQ_eotf_inverse
@@ -108,7 +108,7 @@ const TRANSFORMS_INVERSE: [fn(Vec3, WhitePoint) -> Vec3; 16] = [
     ICtCp::ICtCp_PQ_to_RGB,
     //ICtCp_HLG,
     ICtCp::ICtCp_HLG_to_RGB,
-    //BT_601_709_2020,
+    //BT_601,
     bt601_oetf_inverse,
     //PQ,
     ST_2084_PQ_eotf,
@@ -134,7 +134,7 @@ pub fn sRGB_eotf(color: Vec3, _wp: WhitePoint) -> Vec3 {
     Vec3::select(cutoff, lower, higher)
 }
 
-// Applies the BT.709/BT.601 OETF
+// Applies the BT.601/BT.709/BT.2020 OETF
 #[inline]
 pub fn bt601_oetf(color: Vec3, _wp: WhitePoint) -> Vec3 {
     let cutoff = color.cmplt(Vec3::splat(0.0181));
@@ -144,7 +144,7 @@ pub fn bt601_oetf(color: Vec3, _wp: WhitePoint) -> Vec3 {
     Vec3::select(cutoff, lower, higher)
 }
 
-// Applies the inverse of the BT.709/BT.601 OETF
+// Applies the inverse of the BT.601/BT.709/BT.2020 OETF
 #[inline]
 pub fn bt601_oetf_inverse(color: Vec3, _wp: WhitePoint) -> Vec3 {
     let cutoff = color.cmplt(Vec3::splat(0.08145));

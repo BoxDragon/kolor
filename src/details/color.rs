@@ -42,7 +42,7 @@ pub enum TransformFn {
     /// BT.2100 ICtCp with HLG transfer function
     ICtCp_HLG,
     /// The BT.601/BT.709/BT.2020 (they are equivalent) OETF and inverse.
-    BT_601_709_2020,
+    BT_601,
     /// SMPTE ST 2084:2014 aka "Perceptual Quantizer" transfer functions used in BT.2100
     /// for digitally created/distributed HDR content.
     PQ,
@@ -299,8 +299,12 @@ pub mod color_spaces {
     /// with a [D65 whitepoint.][WhitePoint::D65]. It's equivalent to [Linear sRGB][LINEAR_SRGB]
     pub const BT_709: ColorSpace = ColorSpace::linear(RGBPrimaries::BT_709, WhitePoint::D65);
 
-    /// Encoded BT.709 is [BT.709](BT_709) with the [BT.709 OETF](TransformFn::BT_601_709_2020) applied.
-    pub const ENCODED_BT_709: ColorSpace = ColorSpace::linear(RGBPrimaries::BT_709, WhitePoint::D65);
+    /// Encoded BT.709 is [BT.709](BT_709) with the [BT.709 OETF](TransformFn::BT_601) applied.
+    pub const ENCODED_BT_709: ColorSpace = ColorSpace::new(
+        RGBPrimaries::BT_709,
+        WhitePoint::D65,
+        TransformFn::BT_601
+    );
 
     /// ACEScg is a linear encoding in [AP1 primaries][RGBPrimaries::AP1]
     /// with a [D60 whitepoint][WhitePoint::D60].
@@ -318,11 +322,11 @@ pub mod color_spaces {
     /// BT.2100 has the same linear color space as BT.2020.
     pub const BT_2020: ColorSpace = ColorSpace::linear(RGBPrimaries::BT_2020, WhitePoint::D65);
 
-    /// Encoded BT.2020 is [BT.2020](BT_2020) with the [BT.2020 OETF][TransformFn::BT_601_709_2020] applied.
+    /// Encoded BT.2020 is [BT.2020](BT_2020) with the [BT.2020 OETF][TransformFn::BT_601] applied.
     pub const ENCODED_BT_2020: ColorSpace = ColorSpace::new(
         RGBPrimaries::BT_2020,
         WhitePoint::D65,
-        TransformFn::BT_601_709_2020,
+        TransformFn::BT_601,
     );
 
     /// Encoded BT.2100 PQ is [BT.2020](BT_2020) (equivalent to the linear BT.2100 space) with
@@ -353,7 +357,7 @@ pub mod color_spaces {
         TransformFn::ICtCp_HLG,
     );
 
-    /// Encoded sRGB is [Display P3][DISPLAY_P3] with the [sRGB OETF](TransformFn::sRGB) applied.
+    /// Encoded Display P3 is [Display P3][DISPLAY_P3] with the [sRGB OETF](TransformFn::sRGB) applied.
     pub const ENCODED_DISPLAY_P3: ColorSpace = ColorSpace::new(
         RGBPrimaries::P3,
         WhitePoint::D65,
