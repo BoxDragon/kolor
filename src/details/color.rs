@@ -10,8 +10,8 @@ use serde::{Deserialize, Serialize};
 #[allow(non_camel_case_types, clippy::upper_case_acronyms)]
 pub enum TransformFn {
     NONE,
-    /// The SRGB "gamma compensation" function
-    sRGB_Gamma,
+    /// The sRGB transfer functions (aka "gamma correction")
+    sRGB,
     /// Oklab conversion from xyz
     Oklab,
     /// CIE xyY transform
@@ -41,6 +41,11 @@ pub enum TransformFn {
     ICtCp_PQ,
     /// BT.2100 ICtCp with HLG transfer function
     ICtCp_HLG,
+    /// The BT.601/BT.709/BT.2020 (they are equivalent) OETF and inverse.
+    BT_601_709_2020,
+    /// SMPTE ST 2084:2014 aka "Perceptual Quantizer" transfer functions used in BT.2100
+    /// for digitally created/distributed HDR content.
+    PQ,
     // ACEScc is a logarithmic transform
     // ACES_CC,
     // ACEScct is a logarithmic transform with toe
@@ -279,15 +284,20 @@ pub mod color_spaces {
     /// with a [D65 whitepoint.][WhitePoint::D65]
     /// Linear sRGB is equivalent to [BT_709].
     pub const LINEAR_SRGB: ColorSpace = ColorSpace::linear(RGBPrimaries::BT_709, WhitePoint::D65);
-    /// BT_709 is a linear encoding in [BT.709 primaries][RGBPrimaries::BT_709]
-    /// with a [D65 whitepoint.][WhitePoint::D65]. It's equivalent to [Linear sRGB][LINEAR_SRGB]
-    pub const BT_709: ColorSpace = ColorSpace::linear(RGBPrimaries::BT_709, WhitePoint::D65);
-    /// sRGB is [Linear sRGB][LINEAR_SRGB] with the sRGB tone response curve applied, also called "gamma-compressed".
-    pub const SRGB: ColorSpace = ColorSpace::new(
+
+    /// Encoded sRGB is [Linear sRGB][LINEAR_SRGB] with the [sRGB OETF](TransformFn::sRGB) applied (also called "gamma-compressed").
+    pub const ENCODED_SRGB: ColorSpace = ColorSpace::new(
         RGBPrimaries::BT_709,
         WhitePoint::D65,
-        TransformFn::sRGB_Gamma,
+        TransformFn::sRGB,
     );
+
+    /// BT.709 is a linear encoding in [BT.709 primaries][RGBPrimaries::BT_709]
+    /// with a [D65 whitepoint.][WhitePoint::D65]. It's equivalent to [Linear sRGB][LINEAR_SRGB]
+    pub const BT_709: ColorSpace = ColorSpace::linear(RGBPrimaries::BT_709, WhitePoint::D65);
+
+    /// Encoded BT.709 is [BT.709](BT_709) with the [BT.709 OETF](TransformFn::BT_601_709_2020) applied.
+    pub const ENCODED_BT_709: ColorSpace = ColorSpace::linear(RGBPrimaries::BT_709, WhitePoint::D65);
 
     /// ACEScg is a linear encoding in [AP1 primaries][RGBPrimaries::AP1]
     /// with a [D60 whitepoint][WhitePoint::D60].
@@ -302,8 +312,23 @@ pub mod color_spaces {
 
     /// BT.2020 is a linear encoding in [BT.2020 primaries][RGBPrimaries::BT_2020]
     /// with a [D65 white point][WhitePoint::D65]
-    /// BT.2100 has the same color space as BT.2020.
+    /// BT.2100 has the same linear color space as BT.2020.
     pub const BT_2020: ColorSpace = ColorSpace::linear(RGBPrimaries::BT_2020, WhitePoint::D65);
+
+    /// Encoded BT.2020 is [BT.2020](BT_2020) with the [BT.2020 OETF][TransformFn::BT_601_709_2020] applied.
+    pub const ENCODED_BT_2020: ColorSpace = ColorSpace::new(
+        RGBPrimaries::BT_2020,
+        WhitePoint::D65,
+        TransformFn::BT_601_709_2020,
+    );
+
+    /// Encoded BT.2100 PQ is [BT.2020](BT_2020) (equivalent to the linear BT.2100 space) with
+    /// the [Perceptual Quantizer inverse EOTF][TransformFn::PQ] applied.
+    pub const ENCODED_BT_2100_PQ: ColorSpace = ColorSpace::new(
+        RGBPrimaries::BT_2020,
+        WhitePoint::D65,
+        TransformFn::BT_601_709_2020,
+    );
 
     /// Oklab is a non-linear encoding in [XYZ][RGBPrimaries::CIE_XYZ],
     /// with a [D65 whitepoint][WhitePoint::D65]
@@ -356,10 +381,14 @@ pub mod color_spaces {
     pub const APPLE: ColorSpace = ColorSpace::linear(RGBPrimaries::APPLE, WhitePoint::D65);
 
     /// Array containing all built-in color spaces.
-    pub const ALL_COLOR_SPACES: [ColorSpace; 16] = [
+    pub const ALL_COLOR_SPACES: [ColorSpace; 20] = [
+        color_spaces::LINEAR_SRGB,
+        color_spaces::ENCODED_SRGB,
         color_spaces::BT_709,
+        color_spaces::ENCODED_BT_709,
         color_spaces::BT_2020,
-        color_spaces::SRGB,
+        color_spaces::ENCODED_BT_2020,
+        color_spaces::ENCODED_BT_2100_PQ,
         color_spaces::ACES_CG,
         color_spaces::ACES2065_1,
         color_spaces::CIE_RGB,
@@ -393,11 +422,12 @@ impl Color {
     pub fn space(&self) -> ColorSpace {
         self.space
     }
-    /// Equivalent to `Color::new(x, y, z, kolor::spaces::SRGB)`
+
+    /// Equivalent to `Color::new(x, y, z, kolor::spaces::ENCODED_SRGB)`
     pub fn srgb(x: FType, y: FType, z: FType) -> Self {
         Self {
             value: Vec3::new(x, y, z),
-            space: color_spaces::SRGB,
+            space: color_spaces::ENCODED_SRGB,
         }
     }
 
@@ -460,7 +490,7 @@ mod test {
 
     #[test]
     fn linear_srgb_to_srgb() {
-        let transform = ColorTransform::new(TransformFn::NONE, TransformFn::sRGB_Gamma).unwrap();
+        let transform = ColorTransform::new(TransformFn::NONE, TransformFn::sRGB).unwrap();
         let test = Vec3::new(0.35, 0.1, 0.8);
         let result = transform.apply(test, WhitePoint::D65);
         assert_eq!(result, Vec3::new(0.6262097, 0.34919018, 0.9063317));
@@ -480,7 +510,7 @@ mod test {
 
     #[test]
     fn aces_cg_to_srgb() {
-        let conversion = ColorConversion::new(spaces::ACES_CG, spaces::SRGB);
+        let conversion = ColorConversion::new(spaces::ACES_CG, spaces::ENCODED_SRGB);
         let result = conversion.convert(Vec3::new(0.35, 0.1, 0.8));
         assert_eq!(result, Vec3::new(0.46201152, 0.06078783, 0.8996733));
     }
@@ -552,7 +582,7 @@ mod test {
 
     #[test]
     fn cielab_test() {
-        let srgb = Color::new(1.0, 0.5, 0.0, spaces::SRGB);
+        let srgb = Color::new(1.0, 0.5, 0.0, spaces::ENCODED_SRGB);
         let cielab = srgb.to(srgb.space.to_cielab());
         let cielab_inverse = cielab.to(srgb.space);
         let cielch = srgb.to(srgb.space.to_cielch());
@@ -582,7 +612,7 @@ mod test {
 
     #[test]
     fn cie_uvV_test() {
-        let srgb = Color::new(1.0, 0.5, 0.0, spaces::SRGB);
+        let srgb = Color::new(1.0, 0.5, 0.0, spaces::ENCODED_SRGB);
         let uvV = srgb.to(srgb.space.to_cielab());
         let uvV_inverse = uvV.to(srgb.space);
         println!("srgb {:?}", srgb.value);

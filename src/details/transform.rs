@@ -43,9 +43,9 @@ impl ColorTransform {
 }
 
 // Keep in sync with TransformFn
-const TRANSFORMS: [fn(Vec3, WhitePoint) -> Vec3; 14] = [
-    // sRGB_Gamma,
-    sRGB_gamma,
+const TRANSFORMS: [fn(Vec3, WhitePoint) -> Vec3; 16] = [
+    // sRGB,
+    sRGB_oetf,
     // Oklab,
     XYZ_to_Oklab,
     //CIE_xyY,
@@ -72,12 +72,16 @@ const TRANSFORMS: [fn(Vec3, WhitePoint) -> Vec3; 14] = [
     ICtCp::RGB_to_ICtCp_PQ,
     //ICtCp_HLG,
     ICtCp::RGB_to_ICtCp_HLG,
+    //BT_601_709_2020,
+    bt601_oetf,
+    //PQ,
+    ST_2084_PQ_eotf_inverse
 ];
 
 // Keep in sync with TransformFn
-const TRANSFORMS_INVERSE: [fn(Vec3, WhitePoint) -> Vec3; 14] = [
-    // sRGB_Gamma,
-    sRGB_gamma_inverse,
+const TRANSFORMS_INVERSE: [fn(Vec3, WhitePoint) -> Vec3; 16] = [
+    // sRGB,
+    sRGB_eotf,
     // Oklab,
     Oklab_to_XYZ,
     //CIE_xyY,
@@ -104,11 +108,15 @@ const TRANSFORMS_INVERSE: [fn(Vec3, WhitePoint) -> Vec3; 14] = [
     ICtCp::ICtCp_PQ_to_RGB,
     //ICtCp_HLG,
     ICtCp::ICtCp_HLG_to_RGB,
+    //BT_601_709_2020,
+    bt601_oetf_inverse,
+    //PQ,
+    ST_2084_PQ_eotf,
 ];
 
-// Applies the sRGB "opto-eletric transfer function", i.e. gamma compensation
+/// Applies the sRGB OETF (opto-eletronic transfer function), sometimes called "gamma compensation"
 #[inline]
-pub fn sRGB_gamma(color: Vec3, _wp: WhitePoint) -> Vec3 {
+pub fn sRGB_oetf(color: Vec3, _wp: WhitePoint) -> Vec3 {
     let cutoff = color.cmplt(Vec3::splat(0.0031308));
     let higher = Vec3::splat(1.055) * color.powf(1.0 / 2.4) - Vec3::splat(0.055);
     let lower = color * Vec3::splat(12.92);
@@ -116,12 +124,32 @@ pub fn sRGB_gamma(color: Vec3, _wp: WhitePoint) -> Vec3 {
     Vec3::select(cutoff, lower, higher)
 }
 
-// Inverse of `color_gamma`
+/// Applies the sRGB EOTF (electro-optical transfer function), which is also the direct inverse of the sRGB OETF.
 #[inline]
-pub fn sRGB_gamma_inverse(color: Vec3, _wp: WhitePoint) -> Vec3 {
+pub fn sRGB_eotf(color: Vec3, _wp: WhitePoint) -> Vec3 {
     let cutoff = color.cmplt(Vec3::splat(0.04045));
     let higher = ((color + Vec3::splat(0.055)) / 1.055).powf(2.4);
     let lower = color / 12.92;
+
+    Vec3::select(cutoff, lower, higher)
+}
+
+// Applies the BT.709/BT.601 OETF
+#[inline]
+pub fn bt601_oetf(color: Vec3, _wp: WhitePoint) -> Vec3 {
+    let cutoff = color.cmplt(Vec3::splat(0.0181));
+    let higher = 1.0993 * color.powf(0.45) - Vec3::splat(0.0993);
+    let lower = 4.5 * color;
+
+    Vec3::select(cutoff, lower, higher)
+}
+
+// Applies the inverse of the BT.709/BT.601 OETF
+#[inline]
+pub fn bt601_oetf_inverse(color: Vec3, _wp: WhitePoint) -> Vec3 {
+    let cutoff = color.cmplt(Vec3::splat(0.08145));
+    let higher = ((color + Vec3::splat(0.0993)) / 1.0993).powf(1.0 / 0.45);
+    let lower = color / 4.5;
 
     Vec3::select(cutoff, lower, higher)
 }
@@ -378,9 +406,9 @@ pub fn CIE_1976_Luv_to_XYZ(color: Vec3, wp: WhitePoint) -> Vec3 {
     )
 }
 
-/// ARIB STD-B67 or "Hybrid Log-Gamma"
+/// ARIB STD-B67 or "Hybrid Log-Gamma" used in BT.2100
 #[allow(non_upper_case_globals)]
-mod HLG {
+pub mod hlg {
     use super::*;
     const HLG_a: FType = 0.17883277;
     const HLG_b: FType = 0.28466892;
@@ -396,7 +424,7 @@ mod HLG {
     /// ARIB STD-B67 or "Hybrid Log-Gamma"
     #[allow(non_upper_case_globals)]
     #[inline]
-    pub fn hybrid_log_gamma(color: Vec3, _wp: WhitePoint) -> Vec3 {
+    pub fn ARIB_HLG_oetf(color: Vec3, _wp: WhitePoint) -> Vec3 {
         Vec3::new(
             HLG_channel(color.x),
             HLG_channel(color.y),
@@ -407,7 +435,7 @@ mod HLG {
     /// Inverse of ARIB STD-B67 or "Hybrid Log-Gamma"
     #[allow(non_upper_case_globals)]
     #[inline]
-    pub fn hybrid_log_gamma_inverse(color: Vec3, _wp: WhitePoint) -> Vec3 {
+    pub fn ARIB_HLG_oetf_inverse(color: Vec3, _wp: WhitePoint) -> Vec3 {
         fn HLG_channel_inverse(E_p: FType) -> FType {
             if E_p <= HLG_channel(1.0) {
                 (E_p / HLG_r).powf(2.0)
@@ -423,9 +451,11 @@ mod HLG {
     }
 }
 
-/// SMPTE ST 2084:2014 EOTF
+pub use hlg::*;
+
+/// SMPTE ST 2084:2014 EOTF aka "Perceptual Quantizer" used in BT.2100
 #[allow(non_upper_case_globals)]
-mod PQ {
+pub mod pq {
     use super::*;
     const L_p: FType = 10000.0;
     const M_1: FType = 0.1593017578125;
@@ -435,9 +465,9 @@ mod PQ {
     const C_1: FType = 0.8359375;
     const C_2: FType = 18.8515625;
     const C_3: FType = 18.6875;
-    /// SMPTE ST 2084:2014 perceptual inverse electro-optical transfer function
+    /// SMPTE ST 2084:2014 perceptual electo-optical transfer function inverse
     #[inline]
-    pub fn ST_2084_PQ_inverse(color: Vec3) -> Vec3 {
+    pub fn ST_2084_PQ_eotf_inverse(color: Vec3, _wp: WhitePoint) -> Vec3 {
         fn apply_channel(f: FType) -> FType {
             let Y_p = (f / L_p).powf(M_1);
             ((C_1 + C_2 * Y_p) / (C_3 * Y_p + 1.0)).powf(M_2)
@@ -451,7 +481,7 @@ mod PQ {
 
     /// SMPTE ST 2084:2014 perceptual electro-optical transfer function
     #[inline]
-    pub fn ST_2084_PQ(color: Vec3) -> Vec3 {
+    pub fn ST_2084_PQ_eotf(color: Vec3, _wp: WhitePoint) -> Vec3 {
         fn apply_channel(f: FType) -> FType {
             let V_p = f.powf(M_2_d);
 
@@ -466,6 +496,8 @@ mod PQ {
         )
     }
 }
+
+pub use pq::*;
 
 /// BT.2100 ICtCp
 pub mod ICtCp {
@@ -498,7 +530,7 @@ pub mod ICtCp {
         ];
         let to_lms = Mat3::from_cols_array(&ICtCp_LMS).transpose();
         let lms = to_lms * color;
-        let hlg = HLG::hybrid_log_gamma(lms, wp);
+        let hlg = hlg::ARIB_HLG_oetf(lms, wp);
         let hlg_to_ICtCp = Mat3::from_cols_array(&ICtCp_From_HLG).transpose();
         hlg_to_ICtCp * hlg
     }
@@ -515,7 +547,7 @@ pub mod ICtCp {
         ];
         let ICtCp_to_hlg = Mat3::from_cols_array(&ICtCp_From_HLG_INVERSE).transpose();
         let lms_hlg = ICtCp_to_hlg * color;
-        let lms = HLG::hybrid_log_gamma_inverse(lms_hlg, wp);
+        let lms = hlg::ARIB_HLG_oetf_inverse(lms_hlg, wp);
         let lms_to_rgb = Mat3::from_cols_array(&ICtCp_LMS_INVERSE).transpose();
         lms_to_rgb * lms
     }
@@ -532,7 +564,7 @@ pub mod ICtCp {
         ];
         let to_lms = Mat3::from_cols_array(&ICtCp_LMS).transpose();
         let lms = to_lms * color;
-        let pq = PQ::ST_2084_PQ_inverse(lms);
+        let pq = pq::ST_2084_PQ_eotf_inverse(lms, WhitePoint::D65);
         let pq_to_ICtCp = Mat3::from_cols_array(&ICtCp_From_PQ).transpose();
         pq_to_ICtCp * pq
     }
@@ -548,11 +580,13 @@ pub mod ICtCp {
         ];
         let ICtCp_to_pq = Mat3::from_cols_array(&ICtCp_From_PQ_INVERSE).transpose();
         let lms_pq = ICtCp_to_pq * color;
-        let lms = PQ::ST_2084_PQ(lms_pq);
+        let lms = pq::ST_2084_PQ_eotf(lms_pq, WhitePoint::D65);
         let lms_to_rgb = Mat3::from_cols_array(&ICtCp_LMS_INVERSE).transpose();
         lms_to_rgb * lms
     }
 }
+
+pub use ICtCp::*;
 
 /// transforms for Hue/Saturation/X color models, like HSL, HSI, HSV
 pub mod hsx {
@@ -698,3 +732,5 @@ pub mod hsx {
         (r, g, b)
     }
 }
+
+pub use hsx::*;
