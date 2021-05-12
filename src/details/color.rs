@@ -292,7 +292,7 @@ pub mod color_spaces {
     pub const ENCODED_SRGB: ColorSpace = ColorSpace::new(
         RGBPrimaries::BT_709,
         WhitePoint::D65,
-        TransformFn::sRGB
+        TransformFn::sRGB,
     );
 
     /// BT.709 is a linear encoding in [BT.709 primaries][RGBPrimaries::BT_709]
@@ -303,7 +303,7 @@ pub mod color_spaces {
     pub const ENCODED_BT_709: ColorSpace = ColorSpace::new(
         RGBPrimaries::BT_709,
         WhitePoint::D65,
-        TransformFn::BT_601
+        TransformFn::BT_601,
     );
 
     /// ACEScg is a linear encoding in [AP1 primaries][RGBPrimaries::AP1]
@@ -330,7 +330,7 @@ pub mod color_spaces {
     pub const ENCODED_BT_2020: ColorSpace = ColorSpace::new(
         RGBPrimaries::BT_2020,
         WhitePoint::D65,
-        TransformFn::BT_601
+        TransformFn::BT_601,
     );
 
     /// Encoded BT.2100 PQ is [BT.2020](BT_2020) (equivalent to the linear BT.2100 space) with
@@ -338,7 +338,7 @@ pub mod color_spaces {
     pub const ENCODED_BT_2100_PQ: ColorSpace = ColorSpace::new(
         RGBPrimaries::BT_2020,
         WhitePoint::D65,
-        TransformFn::PQ
+        TransformFn::PQ,
     );
 
     /// Oklab is a non-linear encoding in [XYZ][RGBPrimaries::CIE_XYZ],
@@ -346,7 +346,7 @@ pub mod color_spaces {
     pub const OKLAB: ColorSpace = ColorSpace::new(
         RGBPrimaries::CIE_XYZ,
         WhitePoint::D65,
-        TransformFn::Oklab
+        TransformFn::Oklab,
     );
 
     /// ICtCp_PQ is a non-linear encoding in [BT.2020 primaries][RGBPrimaries::BT_2020],
@@ -368,7 +368,7 @@ pub mod color_spaces {
     pub const ENCODED_DISPLAY_P3: ColorSpace = ColorSpace::new(
         RGBPrimaries::P3,
         WhitePoint::D65,
-        TransformFn::sRGB
+        TransformFn::sRGB,
     );
 
     /// Display P3 by Apple is a linear encoding in [P3 primaries][RGBPrimaries::P3]
