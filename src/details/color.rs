@@ -312,8 +312,8 @@ pub mod color_spaces {
     pub const CIE_RGB: ColorSpace = ColorSpace::linear(RGBPrimaries::CIE_RGB, WhitePoint::E);
 
     /// CIE XYZ reference color space. Uses [CIE XYZ primaries][RGBPrimaries::CIE_XYZ]
-    /// with white point [E][WhitePoint::E].
-    pub const CIE_XYZ: ColorSpace = ColorSpace::linear(RGBPrimaries::CIE_XYZ, WhitePoint::E);
+    /// with white point [D65][WhitePoint::D65].
+    pub const CIE_XYZ: ColorSpace = ColorSpace::linear(RGBPrimaries::CIE_XYZ, WhitePoint::D65);
 
     /// BT.2020 is a linear encoding in [BT.2020 primaries][RGBPrimaries::BT_2020]
     /// with a [D65 white point][WhitePoint::D65]
