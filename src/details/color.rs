@@ -289,22 +289,16 @@ pub mod color_spaces {
     pub const LINEAR_SRGB: ColorSpace = ColorSpace::linear(RGBPrimaries::BT_709, WhitePoint::D65);
 
     /// Encoded sRGB is [Linear sRGB][LINEAR_SRGB] with the [sRGB OETF](TransformFn::sRGB) applied (also called "gamma-compressed").
-    pub const ENCODED_SRGB: ColorSpace = ColorSpace::new(
-        RGBPrimaries::BT_709,
-        WhitePoint::D65,
-        TransformFn::sRGB,
-    );
+    pub const ENCODED_SRGB: ColorSpace =
+        ColorSpace::new(RGBPrimaries::BT_709, WhitePoint::D65, TransformFn::sRGB);
 
     /// BT.709 is a linear encoding in [BT.709 primaries][RGBPrimaries::BT_709]
     /// with a [D65 whitepoint.][WhitePoint::D65]. It's equivalent to [Linear sRGB][LINEAR_SRGB]
     pub const BT_709: ColorSpace = ColorSpace::linear(RGBPrimaries::BT_709, WhitePoint::D65);
 
     /// Encoded BT.709 is [BT.709](BT_709) with the [BT.709 OETF](TransformFn::BT_601) applied.
-    pub const ENCODED_BT_709: ColorSpace = ColorSpace::new(
-        RGBPrimaries::BT_709,
-        WhitePoint::D65,
-        TransformFn::BT_601
-    );
+    pub const ENCODED_BT_709: ColorSpace =
+        ColorSpace::new(RGBPrimaries::BT_709, WhitePoint::D65, TransformFn::BT_601);
 
     /// ACEScg is a linear encoding in [AP1 primaries][RGBPrimaries::AP1]
     /// with a [D60 whitepoint][WhitePoint::D60].
@@ -317,25 +311,23 @@ pub mod color_spaces {
     /// with white point [E][WhitePoint::E].
     pub const CIE_RGB: ColorSpace = ColorSpace::linear(RGBPrimaries::CIE_RGB, WhitePoint::E);
 
+    /// CIE XYZ reference color space. Uses [CIE XYZ primaries][RGBPrimaries::CIE_XYZ]
+    /// with white point [E][WhitePoint::E].
+    pub const CIE_XYZ: ColorSpace = ColorSpace::linear(RGBPrimaries::CIE_XYZ, WhitePoint::E);
+
     /// BT.2020 is a linear encoding in [BT.2020 primaries][RGBPrimaries::BT_2020]
     /// with a [D65 white point][WhitePoint::D65]
     /// BT.2100 has the same linear color space as BT.2020.
     pub const BT_2020: ColorSpace = ColorSpace::linear(RGBPrimaries::BT_2020, WhitePoint::D65);
 
     /// Encoded BT.2020 is [BT.2020](BT_2020) with the [BT.2020 OETF][TransformFn::BT_601] applied.
-    pub const ENCODED_BT_2020: ColorSpace = ColorSpace::new(
-        RGBPrimaries::BT_2020,
-        WhitePoint::D65,
-        TransformFn::BT_601,
-    );
+    pub const ENCODED_BT_2020: ColorSpace =
+        ColorSpace::new(RGBPrimaries::BT_2020, WhitePoint::D65, TransformFn::BT_601);
 
     /// Encoded BT.2100 PQ is [BT.2020](BT_2020) (equivalent to the linear BT.2100 space) with
     /// the [Perceptual Quantizer inverse EOTF][TransformFn::PQ] applied.
-    pub const ENCODED_BT_2100_PQ: ColorSpace = ColorSpace::new(
-        RGBPrimaries::BT_2020,
-        WhitePoint::D65,
-        TransformFn::PQ,
-    );
+    pub const ENCODED_BT_2100_PQ: ColorSpace =
+        ColorSpace::new(RGBPrimaries::BT_2020, WhitePoint::D65, TransformFn::PQ);
 
     /// Oklab is a non-linear encoding in [XYZ][RGBPrimaries::CIE_XYZ],
     /// with a [D65 whitepoint][WhitePoint::D65]
@@ -358,11 +350,8 @@ pub mod color_spaces {
     );
 
     /// Encoded Display P3 is [Display P3][DISPLAY_P3] with the [sRGB OETF](TransformFn::sRGB) applied.
-    pub const ENCODED_DISPLAY_P3: ColorSpace = ColorSpace::new(
-        RGBPrimaries::P3,
-        WhitePoint::D65,
-        TransformFn::sRGB,
-    );
+    pub const ENCODED_DISPLAY_P3: ColorSpace =
+        ColorSpace::new(RGBPrimaries::P3, WhitePoint::D65, TransformFn::sRGB);
 
     /// Display P3 by Apple is a linear encoding in [P3 primaries][RGBPrimaries::P3]
     /// with a [D65 white point][WhitePoint::D65]
@@ -395,7 +384,7 @@ pub mod color_spaces {
     pub const APPLE: ColorSpace = ColorSpace::linear(RGBPrimaries::APPLE, WhitePoint::D65);
 
     /// Array containing all built-in color spaces.
-    pub const ALL_COLOR_SPACES: [ColorSpace; 21] = [
+    pub const ALL_COLOR_SPACES: [ColorSpace; 22] = [
         color_spaces::LINEAR_SRGB,
         color_spaces::ENCODED_SRGB,
         color_spaces::BT_709,
@@ -406,6 +395,7 @@ pub mod color_spaces {
         color_spaces::ACES_CG,
         color_spaces::ACES2065_1,
         color_spaces::CIE_RGB,
+        color_spaces::CIE_XYZ,
         color_spaces::OKLAB,
         color_spaces::ICtCp_PQ,
         color_spaces::ICtCp_HLG,
