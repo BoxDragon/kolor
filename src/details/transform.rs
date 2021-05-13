@@ -189,8 +189,9 @@ pub fn Oklab_to_XYZ(color: Vec3, _wp: WhitePoint) -> Vec3 {
 pub fn XYZ_to_Oklch(color: Vec3, _wp: WhitePoint) -> Vec3 {
     let oklab = XYZ_to_Oklab(color, _wp);
     let lightness = oklab.x;
-    let chroma = oklab.yz().length();
-    let hue = oklab.z.atan2(oklab.y);
+    let ab = oklab.yz();
+    let chroma = ab.length();
+    let hue = ab.y.atan2(ab.x);
     Vec3::new(lightness, chroma, hue)
 }
 
