@@ -78,7 +78,7 @@ const TRANSFORMS: [fn(Vec3, WhitePoint) -> Vec3; 17] = [
     //BT_601,
     bt601_oetf,
     //PQ,
-    ST_2084_PQ_eotf_inverse
+    ST_2084_PQ_eotf_inverse,
 ];
 
 // Keep in sync with TransformFn
