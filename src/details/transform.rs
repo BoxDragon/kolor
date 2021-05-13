@@ -1,5 +1,6 @@
 use super::color::{TransformFn, WhitePoint};
 use crate::{FType, Mat3, Vec3, PI, TAU};
+use glam::Vec3Swizzles;
 
 /// [ColorTransform] represents a reference to a function that can apply a [TransformFn]
 /// or its inverse.
@@ -43,11 +44,13 @@ impl ColorTransform {
 }
 
 // Keep in sync with TransformFn
-const TRANSFORMS: [fn(Vec3, WhitePoint) -> Vec3; 16] = [
+const TRANSFORMS: [fn(Vec3, WhitePoint) -> Vec3; 17] = [
     // sRGB,
     sRGB_oetf,
     // Oklab,
     XYZ_to_Oklab,
+    // Oklch,
+    XYZ_to_Oklch,
     //CIE_xyY,
     XYZ_to_xyY,
     //CIELAB,
@@ -79,11 +82,13 @@ const TRANSFORMS: [fn(Vec3, WhitePoint) -> Vec3; 16] = [
 ];
 
 // Keep in sync with TransformFn
-const TRANSFORMS_INVERSE: [fn(Vec3, WhitePoint) -> Vec3; 16] = [
+const TRANSFORMS_INVERSE: [fn(Vec3, WhitePoint) -> Vec3; 17] = [
     // sRGB,
     sRGB_eotf,
     // Oklab,
     Oklab_to_XYZ,
+    // Oklch,
+    Oklch_to_XYZ,
     //CIE_xyY,
     xyY_to_XYZ,
     //CIELAB,
@@ -178,6 +183,27 @@ pub fn Oklab_to_XYZ(color: Vec3, _wp: WhitePoint) -> Vec3 {
     let mut lms = Mat3::from_cols_array(&OKLAB_M_2).transpose().inverse() * color;
     lms = lms.powf(3.0); // reverse non-linearity
     Mat3::from_cols_array(&OKLAB_M_1).transpose().inverse() * lms
+}
+
+#[inline]
+pub fn XYZ_to_Oklch(color: Vec3, _wp: WhitePoint) -> Vec3 {
+    let oklab = XYZ_to_Oklab(color, _wp);
+    let lightness = oklab.x;
+    let chroma = oklab.yz().length();
+    let hue = oklab.z.atan2(oklab.y);
+    Vec3::new(lightness, chroma, hue)
+}
+
+#[inline]
+pub fn Oklch_to_XYZ(color: Vec3, _wp: WhitePoint) -> Vec3 {
+    let lightness = color.x;
+    let chroma = color.y;
+    let hue = color.z;
+    let (hue_s, hue_c) = hue.sin_cos();
+    let a = chroma * hue_c;
+    let b = chroma * hue_s;
+    let oklab = Vec3::new(lightness, a, b);
+    Oklab_to_XYZ(oklab, _wp)
 }
 
 #[inline]
