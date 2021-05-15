@@ -1,6 +1,8 @@
 use super::color::{TransformFn, WhitePoint};
 use crate::{FType, Mat3, Vec3, PI, TAU};
 use glam::Vec3Swizzles;
+#[cfg(all(not(feature = "std"), feature = "libm"))]
+use num_traits::Float;
 
 /// [ColorTransform] represents a reference to a function that can apply a [TransformFn]
 /// or its inverse.
