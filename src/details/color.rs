@@ -14,6 +14,8 @@ pub enum TransformFn {
     sRGB,
     /// Oklab conversion from xyz
     Oklab,
+    /// Oklch (Oklab's LCh variant) conversion from xyz
+    Oklch,
     /// CIE xyY transform
     CIE_xyY,
     /// CIELAB transform
@@ -341,12 +343,31 @@ pub mod color_spaces {
         TransformFn::PQ,
     );
 
-    /// Oklab is a non-linear encoding in [XYZ][RGBPrimaries::CIE_XYZ],
-    /// with a [D65 whitepoint][WhitePoint::D65]
+    /// Oklab is a non-linear, perceptual encoding in [XYZ][RGBPrimaries::CIE_XYZ],
+    /// with a [D65 whitepoint][WhitePoint::D65].
+    ///
+    /// Oklab's perceptual qualities make it a very attractive color space for performing
+    /// blend operations between two colors which you want to be perceptually pleasing.
+    /// See [this article](https://bottosson.github.io/posts/oklab/)
+    /// for more on why you might want to use the Oklab colorspace.
     pub const OKLAB: ColorSpace = ColorSpace::new(
         RGBPrimaries::CIE_XYZ,
         WhitePoint::D65,
         TransformFn::Oklab,
+    );
+
+    /// Oklch is a non-linear, perceptual encoding in [XYZ][RGBPrimaries::CIE_XYZ],
+    /// with a [D65 whitepoint][WhitePoint::D65]. It is a variant of [Oklab][OKLAB]
+    /// with LCh coordinates intead of Lab.
+    ///
+    /// Oklch's qualities make it a very attractive color space for performing
+    /// computational modifications to a color. You can think of it as an improved
+    /// version of an HSL/HSV-style color space. See [this article](https://bottosson.github.io/posts/oklab/)
+    /// for more on why you might want to use the Oklch colorspace.
+    pub const OKLCH: ColorSpace = ColorSpace::new(
+        RGBPrimaries::CIE_XYZ,
+        WhitePoint::D65,
+        TransformFn::Oklch,
     );
 
     /// ICtCp_PQ is a non-linear encoding in [BT.2020 primaries][RGBPrimaries::BT_2020],

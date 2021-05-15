@@ -18,6 +18,7 @@ required-features = ["f32"]
 [dependencies]
 glam = { version = "0.13.1", default-features = false }
 serde = { optional = true, version = "1", features = ["derive"] }
+num-traits = { version = "^0.2.14", optional = true, default-features = false }
 
 [features]
 default = ["color-matrices", "f32", "std"]
@@ -25,4 +26,4 @@ serde1 = ["serde", "glam/serde"]
 color-matrices = []
 f32 = []
 std = ["glam/std"]
-libm = ["glam/libm"]
+libm = ["glam/libm", "num-traits", "num-traits/libm"]

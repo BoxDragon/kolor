@@ -161,12 +161,18 @@ impl ColorConversion {
             }
         }
     }
-    pub fn src_transform(&self) -> TransformFn {
+    pub fn src_transform(&self) -> Option<ColorTransform> {
+        self.src_transform
+    }
+    pub fn dst_transform(&self) -> Option<ColorTransform> {
+        self.dst_transform
+    }
+    pub fn src_transform_fn(&self) -> TransformFn {
         self.src_transform
             .map(|_| self.src_space.transform_function())
             .unwrap_or(TransformFn::NONE)
     }
-    pub fn dst_transform(&self) -> TransformFn {
+    pub fn dst_transform_fn(&self) -> TransformFn {
         self.dst_transform
             .map(|_| self.dst_space.transform_function())
             .unwrap_or(TransformFn::NONE)
@@ -181,16 +187,31 @@ impl ColorConversion {
         let vec3 = Vec3::from_slice_unaligned(color);
         *color = self.convert(vec3).into();
     }
-    pub fn convert(&self, mut color: Vec3) -> Vec3 {
+    pub fn apply_src_transform(&self, color: Vec3) -> Vec3 {
         if let Some(src_transform) = self.src_transform.as_ref() {
-            color = src_transform.apply(color, self.src_space.white_point());
+            src_transform.apply(color, self.src_space.white_point())
+        } else {
+            color
         }
+    }
+    pub fn apply_linear_part(&self, color: Vec3) -> Vec3 {
         if let Some(transform) = self.linear_transform.as_ref() {
-            color = transform.convert(color);
+            transform.convert(color)
+        } else {
+            color
         }
+    }
+    pub fn apply_dst_transform(&self, color: Vec3) -> Vec3 {
         if let Some(dst_transform) = self.dst_transform.as_ref() {
-            color = dst_transform.apply(color, self.dst_space.white_point());
+            dst_transform.apply(color, self.dst_space.white_point())
+        } else {
+            color
         }
+    }
+    pub fn convert(&self, mut color: Vec3) -> Vec3 {
+        color = self.apply_src_transform(color);
+        color = self.apply_linear_part(color);
+        color = self.apply_dst_transform(color);
         color
     }
 }
