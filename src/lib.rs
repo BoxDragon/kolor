@@ -102,17 +102,11 @@
 
 #[cfg(feature = "f64")]
 pub type FType = f64;
-#[cfg(feature = "f64")]
-pub use glam::f64::DMat3 as Mat3;
-#[cfg(feature = "f64")]
-pub use glam::f64::DVec3 as Vec3;
 
 #[cfg(not(feature = "f64"))]
 pub type FType = f32;
-#[cfg(not(feature = "f64"))]
-pub use glam::f32::Mat3;
-#[cfg(not(feature = "f64"))]
-pub use glam::f32::Vec3;
+
+pub use details::math::{Mat3, Vec3};
 
 #[cfg(not(feature = "f64"))]
 pub(crate) use core::f32::consts::PI;
@@ -130,6 +124,7 @@ pub mod details {
     #[allow(clippy::excessive_precision)]
     #[cfg(feature = "color-matrices")]
     pub mod generated_matrices;
+    pub mod math;
     #[allow(clippy::excessive_precision)]
     #[allow(non_snake_case)]
     #[allow(clippy::many_single_char_names)]
