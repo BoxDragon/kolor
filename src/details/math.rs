@@ -194,7 +194,6 @@ impl Mat3 {
     }
 
     pub fn inverse(&self) -> Self {
-        println!("SELF: {:#?}", self);
         let m00 = self.x_axis.x;
         let m01 = self.y_axis.x;
         let m02 = self.z_axis.x;
@@ -230,7 +229,6 @@ impl Mat3 {
             ),
         };
 
-        println!("RESULT: {:#?}", result);
         result
     }
 }
