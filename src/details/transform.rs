@@ -1,6 +1,5 @@
 use super::color::{TransformFn, WhitePoint};
 use crate::{FType, Mat3, Vec3, PI, TAU};
-use glam::Vec3Swizzles;
 #[cfg(all(not(feature = "std"), feature = "libm"))]
 use num_traits::Float;
 
@@ -359,7 +358,7 @@ pub fn CIE_1960_xyV_to_uvV(color: Vec3, _wp: WhitePoint) -> Vec3 {
 #[inline]
 pub fn XYZ_to_CIE_1964_UVW(color: Vec3, _wp: WhitePoint) -> Vec3 {
     //     // Convert the white point to uvV form
-    //     let mut wp_value = Vec3::from_slice_unaligned(wp.values());
+    //     let mut wp_value = Vec3::from_slice(wp.values());
     //     XYZ_to_CIE_1960_UCS(&mut wp_value, wp);
     //     CIE_1960_UCS_to_uvV(&mut wp_value);
 

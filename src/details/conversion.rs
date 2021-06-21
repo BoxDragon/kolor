@@ -62,8 +62,8 @@ impl LinearColorConversion {
             };
             if src.white_point() != dst.white_point() {
                 let white_point_transform = super::cat::chromatic_adaptation_transform(
-                    Vec3::from_slice_unaligned(src.white_point().values()),
-                    Vec3::from_slice_unaligned(dst.white_point().values()),
+                    Vec3::from_slice(src.white_point().values()),
+                    Vec3::from_slice(dst.white_point().values()),
                     super::cat::LMSConeSpace::Sharp,
                 );
                 xyz_to_dst * white_point_transform * src_to_xyz
@@ -184,7 +184,7 @@ impl ColorConversion {
         self.dst_space
     }
     pub fn convert_float(&self, color: &mut [FType; 3]) {
-        let vec3 = Vec3::from_slice_unaligned(color);
+        let vec3 = Vec3::from_slice(color);
         *color = self.convert(vec3).into();
     }
     pub fn apply_src_transform(&self, color: Vec3) -> Vec3 {

@@ -291,22 +291,16 @@ pub mod color_spaces {
     pub const LINEAR_SRGB: ColorSpace = ColorSpace::linear(RGBPrimaries::BT_709, WhitePoint::D65);
 
     /// Encoded sRGB is [Linear sRGB][LINEAR_SRGB] with the [sRGB OETF](TransformFn::sRGB) applied (also called "gamma-compressed").
-    pub const ENCODED_SRGB: ColorSpace = ColorSpace::new(
-        RGBPrimaries::BT_709,
-        WhitePoint::D65,
-        TransformFn::sRGB,
-    );
+    pub const ENCODED_SRGB: ColorSpace =
+        ColorSpace::new(RGBPrimaries::BT_709, WhitePoint::D65, TransformFn::sRGB);
 
     /// BT.709 is a linear encoding in [BT.709 primaries][RGBPrimaries::BT_709]
     /// with a [D65 whitepoint.][WhitePoint::D65]. It's equivalent to [Linear sRGB][LINEAR_SRGB]
     pub const BT_709: ColorSpace = ColorSpace::linear(RGBPrimaries::BT_709, WhitePoint::D65);
 
     /// Encoded BT.709 is [BT.709](BT_709) with the [BT.709 OETF](TransformFn::BT_601) applied.
-    pub const ENCODED_BT_709: ColorSpace = ColorSpace::new(
-        RGBPrimaries::BT_709,
-        WhitePoint::D65,
-        TransformFn::BT_601,
-    );
+    pub const ENCODED_BT_709: ColorSpace =
+        ColorSpace::new(RGBPrimaries::BT_709, WhitePoint::D65, TransformFn::BT_601);
 
     /// ACEScg is a linear encoding in [AP1 primaries][RGBPrimaries::AP1]
     /// with a [D60 whitepoint][WhitePoint::D60].
@@ -329,19 +323,13 @@ pub mod color_spaces {
     pub const BT_2020: ColorSpace = ColorSpace::linear(RGBPrimaries::BT_2020, WhitePoint::D65);
 
     /// Encoded BT.2020 is [BT.2020](BT_2020) with the [BT.2020 OETF][TransformFn::BT_601] applied.
-    pub const ENCODED_BT_2020: ColorSpace = ColorSpace::new(
-        RGBPrimaries::BT_2020,
-        WhitePoint::D65,
-        TransformFn::BT_601,
-    );
+    pub const ENCODED_BT_2020: ColorSpace =
+        ColorSpace::new(RGBPrimaries::BT_2020, WhitePoint::D65, TransformFn::BT_601);
 
     /// Encoded BT.2100 PQ is [BT.2020](BT_2020) (equivalent to the linear BT.2100 space) with
     /// the [Perceptual Quantizer inverse EOTF][TransformFn::PQ] applied.
-    pub const ENCODED_BT_2100_PQ: ColorSpace = ColorSpace::new(
-        RGBPrimaries::BT_2020,
-        WhitePoint::D65,
-        TransformFn::PQ,
-    );
+    pub const ENCODED_BT_2100_PQ: ColorSpace =
+        ColorSpace::new(RGBPrimaries::BT_2020, WhitePoint::D65, TransformFn::PQ);
 
     /// Oklab is a non-linear, perceptual encoding in [XYZ][RGBPrimaries::CIE_XYZ],
     /// with a [D65 whitepoint][WhitePoint::D65].
@@ -350,11 +338,8 @@ pub mod color_spaces {
     /// blend operations between two colors which you want to be perceptually pleasing.
     /// See [this article](https://bottosson.github.io/posts/oklab/)
     /// for more on why you might want to use the Oklab colorspace.
-    pub const OKLAB: ColorSpace = ColorSpace::new(
-        RGBPrimaries::CIE_XYZ,
-        WhitePoint::D65,
-        TransformFn::Oklab,
-    );
+    pub const OKLAB: ColorSpace =
+        ColorSpace::new(RGBPrimaries::CIE_XYZ, WhitePoint::D65, TransformFn::Oklab);
 
     /// Oklch is a non-linear, perceptual encoding in [XYZ][RGBPrimaries::CIE_XYZ],
     /// with a [D65 whitepoint][WhitePoint::D65]. It is a variant of [Oklab][OKLAB]
@@ -364,11 +349,8 @@ pub mod color_spaces {
     /// computational modifications to a color. You can think of it as an improved
     /// version of an HSL/HSV-style color space. See [this article](https://bottosson.github.io/posts/oklab/)
     /// for more on why you might want to use the Oklch colorspace.
-    pub const OKLCH: ColorSpace = ColorSpace::new(
-        RGBPrimaries::CIE_XYZ,
-        WhitePoint::D65,
-        TransformFn::Oklch,
-    );
+    pub const OKLCH: ColorSpace =
+        ColorSpace::new(RGBPrimaries::CIE_XYZ, WhitePoint::D65, TransformFn::Oklch);
 
     /// ICtCp_PQ is a non-linear encoding in [BT.2020 primaries][RGBPrimaries::BT_2020],
     /// with a [D65 whitepoint][WhitePoint::D65], using the PQ transfer function
@@ -386,11 +368,8 @@ pub mod color_spaces {
     );
 
     /// Encoded Display P3 is [Display P3][DISPLAY_P3] with the [sRGB OETF](TransformFn::sRGB) applied.
-    pub const ENCODED_DISPLAY_P3: ColorSpace = ColorSpace::new(
-        RGBPrimaries::P3,
-        WhitePoint::D65,
-        TransformFn::sRGB,
-    );
+    pub const ENCODED_DISPLAY_P3: ColorSpace =
+        ColorSpace::new(RGBPrimaries::P3, WhitePoint::D65, TransformFn::sRGB);
 
     /// Display P3 by Apple is a linear encoding in [P3 primaries][RGBPrimaries::P3]
     /// with a [D65 white point][WhitePoint::D65]
@@ -600,8 +579,8 @@ mod test {
         println!(
             "{:?}",
             crate::details::cat::chromatic_adaptation_transform(
-                Vec3::from_slice_unaligned(WhitePoint::D65.values()),
-                Vec3::from_slice_unaligned(WhitePoint::E.values()),
+                Vec3::from_slice(WhitePoint::D65.values()),
+                Vec3::from_slice(WhitePoint::E.values()),
                 crate::details::cat::LMSConeSpace::VonKries,
             )
         );
