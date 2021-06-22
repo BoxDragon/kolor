@@ -493,34 +493,41 @@ pub mod pq {
     const C_1: FType = 0.8359375;
     const C_2: FType = 18.8515625;
     const C_3: FType = 18.6875;
+
+    /// SMPTE ST 2084:2014 perceptual electo-optical transfer function inverse
+    #[inline]
+    pub fn ST_2084_PQ_eotf_inverse_float(f: FType) -> FType {
+        let Y_p = (f / L_p).powf(M_1);
+        ((C_1 + C_2 * Y_p) / (C_3 * Y_p + 1.0)).powf(M_2)
+    }
+
     /// SMPTE ST 2084:2014 perceptual electo-optical transfer function inverse
     #[inline]
     pub fn ST_2084_PQ_eotf_inverse(color: Vec3, _wp: WhitePoint) -> Vec3 {
-        fn apply_channel(f: FType) -> FType {
-            let Y_p = (f / L_p).powf(M_1);
-            ((C_1 + C_2 * Y_p) / (C_3 * Y_p + 1.0)).powf(M_2)
-        }
         Vec3::new(
-            apply_channel(color.x),
-            apply_channel(color.y),
-            apply_channel(color.z),
+            ST_2084_PQ_eotf_inverse_float(color.x),
+            ST_2084_PQ_eotf_inverse_float(color.y),
+            ST_2084_PQ_eotf_inverse_float(color.z),
         )
+    }
+
+    /// SMPTE ST 2084:2014 perceptual electo-optical transfer function inverse
+    #[inline]
+    pub fn ST_2084_PQ_eotf_float(f: FType) -> FType {
+        let V_p = f.powf(M_2_d);
+
+        let n = (V_p - C_1).max(0.0);
+        let L = (n / (C_2 - C_3 * V_p)).powf(M_1_d);
+        L_p * L
     }
 
     /// SMPTE ST 2084:2014 perceptual electro-optical transfer function
     #[inline]
     pub fn ST_2084_PQ_eotf(color: Vec3, _wp: WhitePoint) -> Vec3 {
-        fn apply_channel(f: FType) -> FType {
-            let V_p = f.powf(M_2_d);
-
-            let n = (V_p - C_1).max(0.0);
-            let L = (n / (C_2 - C_3 * V_p)).powf(M_1_d);
-            L_p * L
-        }
         Vec3::new(
-            apply_channel(color.x),
-            apply_channel(color.y),
-            apply_channel(color.z),
+            ST_2084_PQ_eotf_float(color.x),
+            ST_2084_PQ_eotf_float(color.y),
+            ST_2084_PQ_eotf_float(color.z),
         )
     }
 }
