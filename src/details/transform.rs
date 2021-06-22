@@ -175,7 +175,9 @@ const OKLAB_M_2: [FType;9] =
 #[inline]
 pub fn XYZ_to_Oklab(color: Vec3, _wp: WhitePoint) -> Vec3 {
     let mut lms = Mat3::from_cols_array(&OKLAB_M_1).transpose() * color;
-    lms = lms.powf(1.0 / 3.0); // non-linearity
+    // [cbrt] raises `lms` to (1. / 3.) but also avoids NaN when a component of `lms` is negative.
+    // `lms` can contain negative numbers in some cases like when `color` is (0.0, 0.0, 1.0)
+    lms = lms.cbrt(); // non-linearity
     Mat3::from_cols_array(&OKLAB_M_2).transpose() * lms
 }
 

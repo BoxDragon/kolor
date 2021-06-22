@@ -48,6 +48,15 @@ impl Vec3 {
         }
     }
 
+    /// Raise each component to 1. / 3.
+    pub fn cbrt(self) -> Self {
+        Self {
+            x: self.x.cbrt(),
+            y: self.y.cbrt(),
+            z: self.z.cbrt(),
+        }
+    }
+
     pub fn cmplt(self, other: Self) -> BVec3 {
         BVec3 {
             x: self.x < other.x,
