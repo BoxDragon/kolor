@@ -1,4 +1,4 @@
-use crate::{FType, Mat3, Vec3};
+use crate::{FType, Mat3, Vec3, const_mat3};
 
 pub fn xyz_to_rgb(primaries: &[[FType; 2]; 3], white_point: &[FType; 3]) -> Mat3 {
     rgb_to_xyz(primaries, white_point).inverse()
@@ -19,10 +19,11 @@ pub fn rgb_to_xyz(primaries: &[[FType;2]; 3], white_point: &[FType;3]) -> Mat3 {
     let Xb = xb / yb;
     let Yb = 1.0;
     let Zb = (1.0 - xb - yb) / yb;
-    let mut base_matrix = Mat3::from_cols_array(&
-            [Xr, Xg, Xb,
-                Yr, Yg, Yb,
-                Zr, Zg, Zb]).transpose();
+    let mut base_matrix = Mat3::from_cols_array(&[
+        Xr, Yr, Zr,
+        Xg, Yg, Zg,
+        Xb, Yb, Zb
+    ]);
 
     let scale = base_matrix.inverse() * Vec3::new(Wx, Wy, Wz);
     base_matrix.x_axis *= scale.x;

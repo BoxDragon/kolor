@@ -22,9 +22,7 @@ fn main() {
     out_str += "use super::{
     color::{RGBPrimaries, WhitePoint},
 };
-use crate::{
-    FType, Mat3,
-};";
+use crate::{Mat3, const_mat3};\n\n";
     let mut const_matches = String::with_capacity(conversions.len() * 128);
     for conversion in conversions {
         let src = conversion.input_space();
@@ -34,29 +32,29 @@ use crate::{
         let to_name = format!("{:?}_{:?}", dst.primaries(), dst.white_point());
         out_str += &format!(
             "#[rustfmt::skip]
-pub const {}_TO_{}: [FType; 9] = [
+pub const {}_TO_{}: Mat3 = const_mat3!([
     {:?}, {:?}, {:?},
     {:?}, {:?}, {:?},
-    {:?}, {:?}, {:?}];
-\n
-",
+    {:?}, {:?}, {:?},
+]);
+\n",
             from_name,
             to_name,
             mat.x_axis.x,
-            mat.y_axis.x,
-            mat.z_axis.x,
             mat.x_axis.y,
-            mat.y_axis.y,
-            mat.z_axis.y,
             mat.x_axis.z,
+            mat.y_axis.x,
+            mat.y_axis.y,
             mat.y_axis.z,
+            mat.z_axis.x,
+            mat.z_axis.y,
             mat.z_axis.z,
         );
 
         const_matches += &format!(
             "
         (RGBPrimaries::{:?}, WhitePoint::{:?}, RGBPrimaries::{:?}, WhitePoint::{:?}) => {{
-            Some(Mat3::from_cols_array(&{}_TO_{}).transpose())
+            Some({}_TO_{})
         }}",
             src.primaries(),
             src.white_point(),
@@ -86,5 +84,5 @@ pub fn const_conversion_matrix(
         const_matches
     );
 
-    std::fs::write("../src/details/generated_matrices.rs", out_str).unwrap();
+    std::fs::write("../kolor/src/details/generated_matrices.rs", out_str).unwrap();
 }
