@@ -23,6 +23,9 @@ mod math {
     #[cfg(feature = "f64")]
     pub use glam::f64::DVec3 as Vec3;
 
+    #[cfg(all(not(feature = "std"), feature = "libm"))]
+    use num_traits::Float;
+
     impl super::Cuberoot for Vec3 {
         #[inline]
         fn cbrt(&self) -> Self {
@@ -35,6 +38,9 @@ mod math {
 mod math {
     use crate::FType;
     use std::ops::{Add, Div, Mul, MulAssign, Sub};
+    #[cfg(all(not(feature = "std"), feature = "libm"))]
+    use num_traits::Float;
+
 
     #[cfg_attr(feature = "serde1", derive(Serialize, Deserialize))]
     #[derive(Debug, Clone, Copy, PartialEq)]
