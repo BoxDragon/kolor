@@ -1,4 +1,4 @@
-use crate::{FType, Mat3, Vec3, const_mat3};
+use crate::{FType, Mat3, Vec3};
 
 pub fn xyz_to_rgb(primaries: &[[FType; 2]; 3], white_point: &[FType; 3]) -> Mat3 {
     rgb_to_xyz(primaries, white_point).inverse()

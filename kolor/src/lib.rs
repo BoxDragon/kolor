@@ -120,7 +120,7 @@ pub use glam::const_dmat3 as const_mat3;
 macro_rules! const_mat3 {
     ($ftypex9:expr) => {
         Mat3::from_cols_array_const($ftypex9)
-    }
+    };
 }
 
 #[cfg(not(feature = "f64"))]

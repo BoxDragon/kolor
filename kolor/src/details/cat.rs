@@ -6,7 +6,7 @@
 //! [LMSConeSpace] defines the set of supported conversion methods.
 //! [LMSConeSpace::Sharp] is used as a default for conversions by
 //! [ColorConversion][crate::details::conversion::ColorConversion].
-use crate::{Mat3, Vec3, const_mat3};
+use crate::{const_mat3, Mat3, Vec3};
 
 pub enum LMSConeSpace {
     VonKries,

@@ -1,5 +1,8 @@
-use super::{color::{TransformFn, WhitePoint}, math::prelude::*};
-use crate::{FType, Mat3, Vec3, PI, TAU, const_mat3};
+use super::{
+    color::{TransformFn, WhitePoint},
+    math::prelude::*,
+};
+use crate::{const_mat3, FType, Mat3, Vec3, PI, TAU};
 #[cfg(all(not(feature = "std"), feature = "libm"))]
 use num_traits::Float;
 

@@ -1,7 +1,5 @@
-use super::{
-    color::{RGBPrimaries, WhitePoint},
-};
-use crate::{Mat3, const_mat3};
+use super::color::{RGBPrimaries, WhitePoint};
+use crate::{const_mat3, Mat3};
 
 #[rustfmt::skip]
 pub const BT_709_D65_TO_BT_2020_D65: Mat3 = const_mat3!([
@@ -1095,7 +1093,6 @@ pub const ADOBE_WIDE_D50_TO_ADOBE_1998_D65: Mat3 = const_mat3!([
     -0.002173991233517858, -0.08223848261534872, 1.03664814908986,
 ]);
 
-
 pub fn const_conversion_matrix(
     src_primaries: RGBPrimaries,
     src_wp: WhitePoint,
@@ -1106,7 +1103,6 @@ pub fn const_conversion_matrix(
         return Some(Mat3::IDENTITY);
     }
     match (src_primaries, src_wp, dst_primaries, dst_wp) {
-
         (RGBPrimaries::BT_709, WhitePoint::D65, RGBPrimaries::BT_2020, WhitePoint::D65) => {
             Some(BT_709_D65_TO_BT_2020_D65)
         }
