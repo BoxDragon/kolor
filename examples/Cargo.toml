@@ -1,7 +1,7 @@
 [package]
 name = "kolor-examples"
 version = "0.1.0"
-authors = ["Sébastien Crozet <developer@crozet.re>"]
+authors = ["Karl Bergström <karl.anton.bergstrom@gmail.com>"]
 edition = "2018"
 default-run = "all_examples"
 publish = false
@@ -12,4 +12,4 @@ name = "all_examples"
 path = "./all_examples.rs"
 
 [dependencies]
-kolor = { path = "../build/kolor", version = "0.1.2" }
+kolor = { path = "../build/kolor", version = "0.1.6" }
