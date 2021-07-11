@@ -1,5 +1,8 @@
-use super::color::{TransformFn, WhitePoint};
-use crate::{FType, Mat3, Vec3, PI, TAU};
+use super::{
+    color::{TransformFn, WhitePoint},
+    math::prelude::*,
+};
+use crate::{const_mat3, FType, Mat3, Vec3, PI, TAU};
 #[cfg(all(not(feature = "std"), feature = "libm"))]
 use num_traits::Float;
 
@@ -161,31 +164,31 @@ pub fn bt601_oetf_inverse(color: Vec3, _wp: WhitePoint) -> Vec3 {
 }
 
 #[rustfmt::skip]
-const OKLAB_M_1: [FType;9] =
-    [0.8189330101,0.3618667424,-0.1288597137,
-    0.0329845436,0.9293118715,0.0361456387,
-    0.0482003018,0.2643662691,0.6338517070];
+const OKLAB_M_1: Mat3 =
+    const_mat3!([0.8189330101,0.0329845436,0.0482003018,
+    0.3618667424,0.9293118715,0.2643662691,
+    -0.1288597137,0.0361456387,0.6338517070]);
 
 #[rustfmt::skip]
-const OKLAB_M_2: [FType;9] =
-   [0.2104542553,0.7936177850,-0.0040720468,
-   1.9779984951,-2.4285922050,0.4505937099,
-   0.0259040371,0.7827717662,-0.8086757660];
+const OKLAB_M_2: Mat3 =
+   const_mat3!([0.2104542553,1.9779984951,0.02599040371,
+    0.7936177850,-2.4285922050,0.7827717662,
+    -0.0040720468,0.4505937099,-0.8086757660]);
 
 #[inline]
 pub fn XYZ_to_Oklab(color: Vec3, _wp: WhitePoint) -> Vec3 {
-    let mut lms = Mat3::from_cols_array(&OKLAB_M_1).transpose() * color;
+    let mut lms = OKLAB_M_1 * color;
     // [cbrt] raises `lms` to (1. / 3.) but also avoids NaN when a component of `lms` is negative.
     // `lms` can contain negative numbers in some cases like when `color` is (0.0, 0.0, 1.0)
     lms = lms.cbrt(); // non-linearity
-    Mat3::from_cols_array(&OKLAB_M_2).transpose() * lms
+    OKLAB_M_2 * lms
 }
 
 #[inline]
 pub fn Oklab_to_XYZ(color: Vec3, _wp: WhitePoint) -> Vec3 {
-    let mut lms = Mat3::from_cols_array(&OKLAB_M_2).transpose().inverse() * color;
+    let mut lms = OKLAB_M_2.inverse() * color;
     lms = lms.powf(3.0); // reverse non-linearity
-    Mat3::from_cols_array(&OKLAB_M_1).transpose().inverse() * lms
+    OKLAB_M_1.inverse() * lms
 }
 
 #[inline]
@@ -539,37 +542,36 @@ pub use pq::*;
 /// BT.2100 ICtCp
 pub mod ICtCp {
     use super::*;
-    #[rustfmt::skip]
-    #[allow(non_upper_case_globals)]
-    const ICtCp_LMS: [FType; 9] = [
-        0.412109, 0.523926, 0.0639648,
-        0.166748, 0.720459, 0.112793,
-        0.0241699, 0.0754395, 0.900391,
-    ];
 
     #[rustfmt::skip]
     #[allow(non_upper_case_globals)]
-    const ICtCp_LMS_INVERSE: [FType; 9] = [
-        3.43661, -2.50646, 0.0698459,
-        -0.79133, 1.9836, -0.192271,
-        -0.0259498, -0.0989138, 1.12486,
-    ];
+    const ICtCp_LMS: Mat3 = const_mat3!([
+        0.412109, 0.166748, 0.0241699,
+        0.523926, 0.720459, 0.112793,
+        0.0639648, 0.112793, 0.900391,
+    ]);
+
+    #[rustfmt::skip]
+    #[allow(non_upper_case_globals)]
+    const ICtCp_LMS_INVERSE: Mat3 = const_mat3!([
+        3.43661, -0.79133, -0.0259498,
+        -2.50646, 1.9836, -0.192271,
+        0.0698459, -0.192271, 1.12486,
+    ]);
 
     /// ICtCp with the HLG transfer function
     #[inline]
     pub fn RGB_to_ICtCp_HLG(color: Vec3, wp: WhitePoint) -> Vec3 {
         #[rustfmt::skip]
         #[allow(non_upper_case_globals)]
-        const ICtCp_From_HLG: [FType; 9] = [
-            0.5, 0.5, 0.0,
-            0.88501, -1.82251, 0.9375,
-            2.31934, -2.24902, -0.0703125,
-        ];
-        let to_lms = Mat3::from_cols_array(&ICtCp_LMS).transpose();
-        let lms = to_lms * color;
+        const ICtCp_From_HLG: Mat3 = const_mat3!([
+            0.5, 0.88501, 2.31934,
+            0.5, -1.82251, -2.24902,
+            0.0, 0.9375, -0.0703125
+        ]);
+        let lms = ICtCp_LMS * color;
         let hlg = hlg::ARIB_HLG_oetf(lms, wp);
-        let hlg_to_ICtCp = Mat3::from_cols_array(&ICtCp_From_HLG).transpose();
-        hlg_to_ICtCp * hlg
+        ICtCp_From_HLG * hlg
     }
 
     /// Inverse ICtCp with the HLG transfer function
@@ -577,16 +579,14 @@ pub mod ICtCp {
     pub fn ICtCp_HLG_to_RGB(color: Vec3, wp: WhitePoint) -> Vec3 {
         #[rustfmt::skip]
         #[allow(non_upper_case_globals)]
-        const ICtCp_From_HLG_INVERSE: [FType; 9] = [
-            0.999998, 0.0157186, 0.209581,
-            1.0, -0.0157186, -0.209581,
-            1.0, 1.02127, -0.605275,
-        ];
-        let ICtCp_to_hlg = Mat3::from_cols_array(&ICtCp_From_HLG_INVERSE).transpose();
-        let lms_hlg = ICtCp_to_hlg * color;
+        const ICtCp_From_HLG_INVERSE: Mat3 = const_mat3!([
+            0.999998, 1.0, 1.0,
+            0.0157186, -0.0157186, 1.02127,
+            0.209581, -0.209581, -0.605275,
+        ]);
+        let lms_hlg = ICtCp_From_HLG_INVERSE * color;
         let lms = hlg::ARIB_HLG_oetf_inverse(lms_hlg, wp);
-        let lms_to_rgb = Mat3::from_cols_array(&ICtCp_LMS_INVERSE).transpose();
-        lms_to_rgb * lms
+        ICtCp_LMS_INVERSE * lms
     }
 
     /// ICtCp with the PQ transfer function
@@ -594,32 +594,28 @@ pub mod ICtCp {
     pub fn RGB_to_ICtCp_PQ(color: Vec3, _wp: WhitePoint) -> Vec3 {
         #[rustfmt::skip]
         #[allow(non_upper_case_globals)]
-        const ICtCp_From_PQ: [FType; 9] = [
-            0.5, 0.5, 0.0,
-            1.61377, -3.32349, 1.70972,
-            4.37817, -4.24561, -0.132568
-        ];
-        let to_lms = Mat3::from_cols_array(&ICtCp_LMS).transpose();
-        let lms = to_lms * color;
+        const ICtCp_From_PQ: Mat3 = const_mat3!([
+            0.5, 1.61377, 4.37817,
+            0.5, -3.32349, -4.24561,
+            0.0, 1.70972, -0.132568,
+        ]);
+        let lms = ICtCp_LMS * color;
         let pq = pq::ST_2084_PQ_eotf_inverse(lms, WhitePoint::D65);
-        let pq_to_ICtCp = Mat3::from_cols_array(&ICtCp_From_PQ).transpose();
-        pq_to_ICtCp * pq
+        ICtCp_From_PQ * pq
     }
     /// Inverse ICtCp with the PQ transfer function
     #[inline]
     pub fn ICtCp_PQ_to_RGB(color: Vec3, _wp: WhitePoint) -> Vec3 {
         #[rustfmt::skip]
         #[allow(non_upper_case_globals)]
-        const ICtCp_From_PQ_INVERSE: [FType; 9] = [
-            1.0, 0.00860904, 0.11103,
-            1.0, -0.00860904, -0.11103,
-            1.0, 0.560031, -0.320627
-        ];
-        let ICtCp_to_pq = Mat3::from_cols_array(&ICtCp_From_PQ_INVERSE).transpose();
-        let lms_pq = ICtCp_to_pq * color;
+        const ICtCp_From_PQ_INVERSE: Mat3 = const_mat3!([
+            1.0, 1.0, 1.0,
+            0.00860904, -0.00860904, 0.560031,
+            0.11103, -0.11103, -0.320627,
+        ]);
+        let lms_pq = ICtCp_From_PQ_INVERSE * color;
         let lms = pq::ST_2084_PQ_eotf(lms_pq, WhitePoint::D65);
-        let lms_to_rgb = Mat3::from_cols_array(&ICtCp_LMS_INVERSE).transpose();
-        lms_to_rgb * lms
+        ICtCp_LMS_INVERSE * lms
     }
 }
 

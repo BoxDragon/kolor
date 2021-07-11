@@ -108,6 +108,21 @@ pub type FType = f32;
 
 pub use details::math::{Mat3, Vec3};
 
+#[cfg(all(feature = "glam", feature = "f32"))]
+pub use glam::const_mat3;
+
+#[cfg(all(feature = "glam", feature = "f64"))]
+pub use glam::const_dmat3 as const_mat3;
+
+/// Create a `Mat3` from a `[FType; 9]`. The order of components is column-major.
+#[cfg(not(feature = "glam"))]
+#[macro_export]
+macro_rules! const_mat3 {
+    ($ftypex9:expr) => {
+        Mat3::from_cols_array_const($ftypex9)
+    };
+}
+
 #[cfg(not(feature = "f64"))]
 pub(crate) use core::f32::consts::PI;
 #[cfg(not(feature = "f64"))]
