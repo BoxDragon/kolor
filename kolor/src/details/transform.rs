@@ -545,18 +545,34 @@ pub mod ICtCp {
 
     #[rustfmt::skip]
     #[allow(non_upper_case_globals)]
-    const ICtCp_LMS: Mat3 = const_mat3!([
+    pub(crate) const ICtCp_LMS: Mat3 = const_mat3!([
         0.412109, 0.166748, 0.0241699,
-        0.523926, 0.720459, 0.112793,
+        0.523926, 0.720459, 0.0754395,
         0.0639648, 0.112793, 0.900391,
     ]);
 
     #[rustfmt::skip]
     #[allow(non_upper_case_globals)]
-    const ICtCp_LMS_INVERSE: Mat3 = const_mat3!([
+    pub(crate) const ICtCp_LMS_INVERSE: Mat3 = const_mat3!([
         3.43661, -0.79133, -0.0259498,
         -2.50646, 1.9836, -0.0989137,
         0.0698454, -0.192271, 1.12486,
+    ]);
+
+    #[rustfmt::skip]
+    #[allow(non_upper_case_globals)]
+    pub(crate) const ICtCp_From_PQ_INVERSE: Mat3 = const_mat3!([
+        1.0, 1.0, 1.0,
+        0.00860904, -0.00860904, 0.560031,
+        0.11103, -0.11103, -0.320627,
+    ]);
+
+    #[rustfmt::skip]
+    #[allow(non_upper_case_globals)]
+    pub(crate) const ICtCp_From_PQ: Mat3 = const_mat3!([
+        0.5, 1.61377, 4.37817,
+        0.5, -3.32349, -4.24561,
+        0.0, 1.70972, -0.132568,
     ]);
 
     /// ICtCp with the HLG transfer function
@@ -592,13 +608,6 @@ pub mod ICtCp {
     /// ICtCp with the PQ transfer function
     #[inline]
     pub fn RGB_to_ICtCp_PQ(color: Vec3, _wp: WhitePoint) -> Vec3 {
-        #[rustfmt::skip]
-        #[allow(non_upper_case_globals)]
-        const ICtCp_From_PQ: Mat3 = const_mat3!([
-            0.5, 1.61377, 4.37817,
-            0.5, -3.32349, -4.24561,
-            0.0, 1.70972, -0.132568,
-        ]);
         let lms = ICtCp_LMS * color;
         let pq = pq::ST_2084_PQ_eotf_inverse(lms, WhitePoint::D65);
         ICtCp_From_PQ * pq
@@ -606,13 +615,6 @@ pub mod ICtCp {
     /// Inverse ICtCp with the PQ transfer function
     #[inline]
     pub fn ICtCp_PQ_to_RGB(color: Vec3, _wp: WhitePoint) -> Vec3 {
-        #[rustfmt::skip]
-        #[allow(non_upper_case_globals)]
-        const ICtCp_From_PQ_INVERSE: Mat3 = const_mat3!([
-            1.0, 1.0, 1.0,
-            0.00860904, -0.00860904, 0.560031,
-            0.11103, -0.11103, -0.320627,
-        ]);
         let lms_pq = ICtCp_From_PQ_INVERSE * color;
         let lms = pq::ST_2084_PQ_eotf(lms_pq, WhitePoint::D65);
         ICtCp_LMS_INVERSE * lms
@@ -767,3 +769,64 @@ pub mod hsx {
 }
 
 pub use hsx::*;
+
+#[cfg(test)]
+mod test {
+    use crate::spaces;
+    use crate::ColorConversion;
+
+    use super::*;
+    #[test]
+    fn ictcp_pq_inverse() {
+        let to_conv = ColorConversion::new(spaces::LINEAR_SRGB, spaces::ICtCp_PQ);
+        let from_conv = ColorConversion::new(spaces::ICtCp_PQ, spaces::LINEAR_SRGB);
+        let value = 0.5;
+
+        let pq_val = crate::details::transform::pq::ST_2084_PQ_eotf_inverse_float(value);
+        let inverse_val = crate::details::transform::pq::ST_2084_PQ_eotf_float(pq_val);
+        assert!(
+            (value - inverse_val).abs() < 0.001,
+            "pq_val {} inverse {}",
+            value,
+            inverse_val
+        );
+        // validate inverse matrices
+        let value = Vec3::new(0.5, 0.5, 0.5);
+        let result = ICtCp::ICtCp_From_PQ_INVERSE * (ICtCp::ICtCp_From_PQ * value);
+        assert!(value.abs_diff_eq(result, 0.0001), "{} != {}", value, result);
+
+        let result = ICtCp::ICtCp_LMS_INVERSE * (ICtCp::ICtCp_LMS * value);
+        assert!(value.abs_diff_eq(result, 0.0001), "{} != {}", value, result);
+
+        let to = |value: Vec3| from_conv.convert(to_conv.convert(value));
+        let from = |value: Vec3| from_conv.convert(to_conv.convert(value));
+
+        let value = Vec3::new(0.5, 0.5, 0.5);
+        let result = from(to(value));
+        let allowed_error = 0.002;
+        assert!(
+            value.abs_diff_eq(result, allowed_error),
+            "{} != {}",
+            value,
+            result
+        );
+
+        let value = Vec3::new(1.0, 1.0, 1.0);
+        let result = from(to(value));
+        assert!(
+            value.abs_diff_eq(result, allowed_error),
+            "{} != {}",
+            value,
+            result
+        );
+
+        let value = Vec3::new(0.5, 0.5, 0.5);
+        let result = from(to(value));
+        assert!(
+            value.abs_diff_eq(result, allowed_error),
+            "{} != {}",
+            value,
+            result
+        );
+    }
+}
