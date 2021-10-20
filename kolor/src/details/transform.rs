@@ -555,8 +555,8 @@ pub mod ICtCp {
     #[allow(non_upper_case_globals)]
     const ICtCp_LMS_INVERSE: Mat3 = const_mat3!([
         3.43661, -0.79133, -0.0259498,
-        -2.50646, 1.9836, -0.192271,
-        0.0698459, -0.192271, 1.12486,
+        -2.50646, 1.9836, -0.0989137,
+        0.0698454, -0.192271, 1.12486,
     ]);
 
     /// ICtCp with the HLG transfer function
