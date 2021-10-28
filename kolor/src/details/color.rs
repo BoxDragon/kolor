@@ -1,5 +1,9 @@
 use super::{conversion::ColorConversion, transform::ColorTransform};
 use crate::{FType, Vec3};
+#[cfg(feature = "f64")]
+use glam::const_dvec3;
+#[cfg(not(feature = "f64"))]
+use glam::const_vec3;
 #[cfg(feature = "serde1")]
 use serde::{Deserialize, Serialize};
 
@@ -436,22 +440,34 @@ pub struct Color {
     pub space: ColorSpace,
 }
 impl Color {
-    pub fn new(x: FType, y: FType, z: FType, space: ColorSpace) -> Self {
-        Self {
-            value: Vec3::new(x, y, z),
+    pub const fn new(x: FType, y: FType, z: FType, space: ColorSpace) -> Self {
+        #[cfg(feature = "f64")]
+        return Self {
+            value: const_dvec3!([x, y, z]),
             space,
-        }
+        };
+        #[cfg(not(feature = "f64"))]
+        return Self {
+            value: const_vec3!([x, y, z]),
+            space,
+        };
     }
-    pub fn space(&self) -> ColorSpace {
+    pub const fn space(&self) -> ColorSpace {
         self.space
     }
 
     /// Equivalent to `Color::new(x, y, z, kolor::spaces::ENCODED_SRGB)`
-    pub fn srgb(x: FType, y: FType, z: FType) -> Self {
-        Self {
-            value: Vec3::new(x, y, z),
+    pub const fn srgb(x: FType, y: FType, z: FType) -> Self {
+        #[cfg(feature = "f64")]
+        return Self {
+            value: const_dvec3!([x, y, z]),
             space: color_spaces::ENCODED_SRGB,
-        }
+        };
+        #[cfg(not(feature = "f64"))]
+        return Self {
+            value: const_vec3!([x, y, z]),
+            space: color_spaces::ENCODED_SRGB,
+        };
     }
 
     /// Returns a [Color] with this color converted into the provided [ColorSpace].
