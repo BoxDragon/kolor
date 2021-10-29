@@ -113,6 +113,12 @@ mod math {
         pub fn dot(self, other: Self) -> FType {
             self.x * other.x + self.y * other.y + self.z * other.z
         }
+
+        pub fn abs_diff_eq(self, other: Self, max_abs_diff: FType) -> bool {
+            (self.x - other.x).abs() <= max_abs_diff
+                && (self.y - other.y).abs() <= max_abs_diff
+                && (self.z - other.z).abs() <= max_abs_diff
+        }
     }
 
     impl super::Cuberoot for Vec3 {

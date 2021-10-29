@@ -786,17 +786,27 @@ mod test {
         let inverse_val = crate::details::transform::pq::ST_2084_PQ_eotf_float(pq_val);
         assert!(
             (value - inverse_val).abs() < 0.001,
-            "pq_val {} inverse {}",
+            "pq_val {:?} inverse {:?}",
             value,
             inverse_val
         );
         // validate inverse matrices
         let value = Vec3::new(0.5, 0.5, 0.5);
         let result = ICtCp::ICtCp_From_PQ_INVERSE * (ICtCp::ICtCp_From_PQ * value);
-        assert!(value.abs_diff_eq(result, 0.0001), "{} != {}", value, result);
+        assert!(
+            value.abs_diff_eq(result, 0.0001),
+            "{:?} != {:?}",
+            value,
+            result
+        );
 
         let result = ICtCp::ICtCp_LMS_INVERSE * (ICtCp::ICtCp_LMS * value);
-        assert!(value.abs_diff_eq(result, 0.0001), "{} != {}", value, result);
+        assert!(
+            value.abs_diff_eq(result, 0.0001),
+            "{:?} != {:?}",
+            value,
+            result
+        );
 
         let to = |value: Vec3| from_conv.convert(to_conv.convert(value));
         let from = |value: Vec3| from_conv.convert(to_conv.convert(value));
@@ -806,7 +816,7 @@ mod test {
         let allowed_error = 0.002;
         assert!(
             value.abs_diff_eq(result, allowed_error),
-            "{} != {}",
+            "{:?} != {:?}",
             value,
             result
         );
@@ -815,7 +825,7 @@ mod test {
         let result = from(to(value));
         assert!(
             value.abs_diff_eq(result, allowed_error),
-            "{} != {}",
+            "{:?} != {:?}",
             value,
             result
         );
@@ -824,7 +834,7 @@ mod test {
         let result = from(to(value));
         assert!(
             value.abs_diff_eq(result, allowed_error),
-            "{} != {}",
+            "{:?} != {:?}",
             value,
             result
         );
