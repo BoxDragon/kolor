@@ -8,6 +8,6 @@ license = "MIT OR Apache-2.0"
 
 [dependencies]
 kolor-64 = { version = "0.1.7", path = "../build/kolor-64", default-features = false, features = [
-    "std",
+    "std-glam",
     "f64"
 ] }
