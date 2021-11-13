@@ -494,21 +494,14 @@ mod test {
     fn linear_srgb_to_aces_cg() {
         let conversion = LinearColorConversion::new(spaces::LINEAR_SRGB, spaces::ACES_CG);
         let result = conversion.convert(Vec3::new(0.35, 0.2, 0.8));
-        assert_eq!(result, Vec3::new(0.32276854, 0.21838512, 0.72592676));
-    }
-
-    #[test]
-    fn linear_srgb_to_cie_rgb() {
-        let conversion = ColorConversion::new(spaces::LINEAR_SRGB, spaces::CIE_RGB);
-        let result = conversion.convert(Vec3::new(0.35, 0.2, 0.8));
-        assert_eq!(result, Vec3::new(0.3252983, 0.27015764, 0.73588717));
+        assert!(result.abs_diff_eq(Vec3::new(0.32276854, 0.21838512, 0.72592676), 0.001));
     }
 
     #[test]
     fn linear_srgb_to_aces_2065_1() {
         let conversion = ColorConversion::new(spaces::LINEAR_SRGB, spaces::ACES2065_1);
         let result = conversion.convert(Vec3::new(0.35, 0.2, 0.8));
-        assert_eq!(result, Vec3::new(0.3741492, 0.27154857, 0.7261116));
+        assert!(result.abs_diff_eq(Vec3::new(0.3741492, 0.27154857, 0.7261116), 0.001));
     }
 
     #[test]
@@ -516,7 +509,13 @@ mod test {
         let transform = ColorTransform::new(TransformFn::NONE, TransformFn::sRGB).unwrap();
         let test = Vec3::new(0.35, 0.1, 0.8);
         let result = transform.apply(test, WhitePoint::D65);
-        assert_eq!(result, Vec3::new(0.6262097, 0.34919018, 0.9063317));
+        let expected = Vec3::new(0.6262097, 0.34919018, 0.9063317);
+        assert!(
+            result.abs_diff_eq(expected, 0.001),
+            "{} != {}",
+            result,
+            expected
+        );
     }
 
     // #[test]
@@ -535,111 +534,12 @@ mod test {
     fn aces_cg_to_srgb() {
         let conversion = ColorConversion::new(spaces::ACES_CG, spaces::ENCODED_SRGB);
         let result = conversion.convert(Vec3::new(0.35, 0.1, 0.8));
-        assert_eq!(result, Vec3::new(0.46201152, 0.06078783, 0.8996733));
-    }
-
-    #[test]
-    fn aces2065_1_to_xyz_test() {
-        let rgb_to_xyz = rgb_to_xyz(
-            spaces::ACES2065_1.primaries().values(),
-            spaces::ACES2065_1.white_point().values(),
+        let expected = Vec3::new(0.713855624199, 0.271821975708, 0.955197274685);
+        assert!(
+            result.abs_diff_eq(expected, 0.01),
+            "{} != {}",
+            result,
+            expected
         );
-
-        let roundtrip = rgb_to_xyz.inverse() * rgb_to_xyz;
-        println!("{:?}\n{:?}", rgb_to_xyz, roundtrip,);
-        // println!(
-        //     "{:?}",
-        //     xyz_to_rgb(
-        //         ColorSpace::ACES2065_1.primaries().values(),
-        //         ColorSpace::ACES2065_1.white_point().values()
-        //     )
-        // );
-    }
-
-    #[test]
-    fn rgb_to_xyz_test() {
-        println!(
-            "{:?}",
-            rgb_to_xyz(
-                spaces::LINEAR_SRGB.primaries().values(),
-                spaces::LINEAR_SRGB.white_point().values()
-            )
-        );
-        println!(
-            "{:?}",
-            xyz_to_rgb(
-                spaces::LINEAR_SRGB.primaries().values(),
-                spaces::LINEAR_SRGB.white_point().values()
-            )
-        );
-    }
-
-    #[test]
-    fn cat_test() {
-        println!(
-            "{:?}",
-            crate::details::cat::chromatic_adaptation_transform(
-                Vec3::from_slice(WhitePoint::D65.values()),
-                Vec3::from_slice(WhitePoint::E.values()),
-                crate::details::cat::LMSConeSpace::VonKries,
-            )
-        );
-    }
-
-    #[test]
-    fn oklab_test() {
-        let xyz = Color::new(
-            0.0,
-            1.0,
-            0.0,
-            ColorSpace::new(RGBPrimaries::CIE_XYZ, WhitePoint::D65, TransformFn::NONE),
-        );
-        let oklab = xyz.to(spaces::OKLAB);
-        println!(
-            "conversion {:?}",
-            ColorConversion::new(xyz.space(), oklab.space())
-        );
-        println!("xyz {:?}", xyz.value);
-        println!("oklab {:?}", oklab.value);
-    }
-
-    #[test]
-    fn cielab_test() {
-        let srgb = Color::new(1.0, 0.5, 0.0, spaces::ENCODED_SRGB);
-        let cielab = srgb.to(srgb.space.to_cielab());
-        let cielab_inverse = cielab.to(srgb.space);
-        let cielch = srgb.to(srgb.space.to_cielch());
-        let cielch_inverse = cielch.to(srgb.space);
-        let xyY = srgb.to(srgb.space.to_cie_xyY());
-        let xyY_inverse = xyY.to(srgb.space);
-        println!(
-            "conversion {:?}",
-            ColorConversion::new(srgb.space(), cielab.space())
-        );
-        println!("srgb {:?}", srgb.value);
-        println!("cielab {:?}", cielab.value);
-        println!("cielab_inverse {:?}", cielab_inverse.value);
-        println!("cielch {:?}", cielch.value);
-        println!("cielch_inverse {:?}", cielch_inverse.value);
-        println!("xyY {:?}", xyY.value);
-        println!("xyY_inverse {:?}", xyY_inverse.value);
-        println!(
-            " xyz {:?}",
-            srgb.to(ColorSpace::new(
-                RGBPrimaries::CIE_XYZ,
-                WhitePoint::D65,
-                TransformFn::NONE
-            ))
-        );
-    }
-
-    #[test]
-    fn cie_uvV_test() {
-        let srgb = Color::new(1.0, 0.5, 0.0, spaces::ENCODED_SRGB);
-        let uvV = srgb.to(srgb.space.to_cielab());
-        let uvV_inverse = uvV.to(srgb.space);
-        println!("srgb {:?}", srgb.value);
-        println!("uvV {:?}", uvV.value);
-        println!("uvV_inverse {:?}", uvV_inverse.value);
     }
 }
