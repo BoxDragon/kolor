@@ -514,7 +514,6 @@ impl Color {
 mod test {
     use super::*;
     use crate::details::conversion::LinearColorConversion;
-    use crate::details::xyz::{rgb_to_xyz, xyz_to_rgb};
     use color_spaces as spaces;
     #[test]
     fn linear_srgb_to_aces_cg() {
