@@ -95,8 +95,15 @@
 //! Functions in [details::xyz] can be used to create conversion matrices to/from an RGB color space
 //! given a set of primaries and a white point.
 //!
-//! # no_std support
-//! kolor supports `no_std` by disabling the default-enabled `std` feature and enabling the `libm` feature.
+//! # no_std and glam support
+//! kolor is using by default `std` and `glam`, but both can be disabled separately or together with the
+//! folowing features:
+//!
+//! | |`std`|`no_std`|
+//! |-|-|-|
+//! |`glam`|`std-glam`|`libm-glam`|
+//! |no `glam`|`std`|`libm`|
+//!
 
 #![cfg_attr(not(feature = "std"), no_std)]
 

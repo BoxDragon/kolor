@@ -21,9 +21,11 @@ num-traits = { version = "^0.2.14", optional = true, default-features = false }
 glam = { version = "0.17.1", default-features = false, optional = true }
 
 [features]
-default = ["color-matrices", "f64", "std", "glam"]
+default = ["color-matrices", "f64", "std-glam"]
 serde1 = ["serde", "glam/serde"]
 color-matrices = []
 f64 = []
-std = ["glam/std"]
-libm = ["num-traits", "num-traits/libm", "glam/libm"]
+std = []
+std-glam = ["std", "glam/std"]
+libm = ["num-traits", "num-traits/libm"]
+libm-glam = ["libm", "glam/libm"]
