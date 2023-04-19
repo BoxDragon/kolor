@@ -12,6 +12,7 @@ pub(crate) mod prelude {
 pub use math::*;
 
 #[cfg(feature = "glam")]
+#[allow(clippy::module_inception)]
 mod math {
     #[cfg(not(feature = "f64"))]
     pub use glam::f32::Mat3;
@@ -35,6 +36,7 @@ mod math {
 }
 
 #[cfg(not(feature = "glam"))]
+#[allow(clippy::module_inception)]
 mod math {
     use crate::FType;
     #[cfg(all(not(feature = "std"), feature = "libm"))]
@@ -229,15 +231,7 @@ mod math {
             z_axis: Vec3::new(0.0, 0.0, 1.0),
         };
 
-        pub(crate) const fn from_cols_array_const(m: [FType; 9]) -> Self {
-            Self {
-                x_axis: Vec3::new(m[0], m[1], m[2]),
-                y_axis: Vec3::new(m[3], m[4], m[5]),
-                z_axis: Vec3::new(m[6], m[7], m[8]),
-            }
-        }
-
-        pub fn from_cols_array(m: &[FType; 9]) -> Self {
+        pub const fn from_cols_arrayt(m: [FType; 9]) -> Self {
             Self {
                 x_axis: Vec3::new(m[0], m[1], m[2]),
                 y_axis: Vec3::new(m[3], m[4], m[5]),

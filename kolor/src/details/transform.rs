@@ -2,7 +2,7 @@ use super::{
     color::{TransformFn, WhitePoint},
     math::prelude::*,
 };
-use crate::{const_mat3, FType, Mat3, Vec3, PI, TAU};
+use crate::{FType, Mat3, Vec3, PI, TAU};
 #[cfg(all(not(feature = "std"), feature = "libm"))]
 use num_traits::Float;
 
@@ -27,17 +27,19 @@ impl ColorTransform {
         } else {
             Some(TRANSFORMS[dst_transform as usize - 1])
         };
-        let (first, second) = if from_transform.is_some() {
-            (from_transform.unwrap(), to_transform)
-        } else if to_transform.is_some() {
-            (to_transform.unwrap(), None)
+        if let Some(from_transform) = from_transform {
+            Some(Self {
+                first: from_transform,
+                second: to_transform,
+            })
         } else {
-            return None;
-        };
-        Some(Self { first, second })
+            to_transform.map(|to_transform| Self {
+                first: to_transform,
+                second: None,
+            })
+        }
     }
     #[inline(always)]
-    #[inline]
     pub fn apply(&self, color: Vec3, white_point: WhitePoint) -> Vec3 {
         let mut color = (self.first)(color, white_point);
         if let Some(second) = self.second {
@@ -165,13 +167,13 @@ pub fn bt601_oetf_inverse(color: Vec3, _wp: WhitePoint) -> Vec3 {
 
 #[rustfmt::skip]
 const OKLAB_M_1: Mat3 =
-    const_mat3!([0.8189330101,0.0329845436,0.0482003018,
+    Mat3::from_cols_array(&[0.8189330101,0.0329845436,0.0482003018,
     0.3618667424,0.9293118715,0.2643662691,
     -0.1288597137,0.0361456387,0.6338517070]);
 
 #[rustfmt::skip]
 const OKLAB_M_2: Mat3 =
-   const_mat3!([0.2104542553,1.9779984951,0.02599040371,
+   Mat3::from_cols_array(&[0.2104542553,1.9779984951,0.02599040371,
     0.7936177850,-2.4285922050,0.7827717662,
     -0.0040720468,0.4505937099,-0.8086757660]);
 
@@ -545,7 +547,7 @@ pub mod ICtCp {
 
     #[rustfmt::skip]
     #[allow(non_upper_case_globals)]
-    pub(crate) const ICtCp_LMS: Mat3 = const_mat3!([
+    pub(crate) const ICtCp_LMS: Mat3 = Mat3::from_cols_array(&[
         0.412109, 0.166748, 0.0241699,
         0.523926, 0.720459, 0.0754395,
         0.0639648, 0.112793, 0.900391,
@@ -553,7 +555,7 @@ pub mod ICtCp {
 
     #[rustfmt::skip]
     #[allow(non_upper_case_globals)]
-    pub(crate) const ICtCp_LMS_INVERSE: Mat3 = const_mat3!([
+    pub(crate) const ICtCp_LMS_INVERSE: Mat3 = Mat3::from_cols_array(&[
         3.43661, -0.79133, -0.0259498,
         -2.50646, 1.9836, -0.0989137,
         0.0698454, -0.192271, 1.12486,
@@ -561,7 +563,7 @@ pub mod ICtCp {
 
     #[rustfmt::skip]
     #[allow(non_upper_case_globals)]
-    pub(crate) const ICtCp_From_PQ_INVERSE: Mat3 = const_mat3!([
+    pub(crate) const ICtCp_From_PQ_INVERSE: Mat3 = Mat3::from_cols_array(&[
         1.0, 1.0, 1.0,
         0.00860904, -0.00860904, 0.560031,
         0.11103, -0.11103, -0.320627,
@@ -569,7 +571,7 @@ pub mod ICtCp {
 
     #[rustfmt::skip]
     #[allow(non_upper_case_globals)]
-    pub(crate) const ICtCp_From_PQ: Mat3 = const_mat3!([
+    pub(crate) const ICtCp_From_PQ: Mat3 = Mat3::from_cols_array(&[
         0.5, 1.61377, 4.37817,
         0.5, -3.32349, -4.24561,
         0.0, 1.70972, -0.132568,
@@ -580,7 +582,7 @@ pub mod ICtCp {
     pub fn RGB_to_ICtCp_HLG(color: Vec3, wp: WhitePoint) -> Vec3 {
         #[rustfmt::skip]
         #[allow(non_upper_case_globals)]
-        const ICtCp_From_HLG: Mat3 = const_mat3!([
+        const ICtCp_From_HLG: Mat3 = Mat3::from_cols_array(&[
             0.5, 0.88501, 2.31934,
             0.5, -1.82251, -2.24902,
             0.0, 0.9375, -0.0703125
@@ -595,7 +597,7 @@ pub mod ICtCp {
     pub fn ICtCp_HLG_to_RGB(color: Vec3, wp: WhitePoint) -> Vec3 {
         #[rustfmt::skip]
         #[allow(non_upper_case_globals)]
-        const ICtCp_From_HLG_INVERSE: Mat3 = const_mat3!([
+        const ICtCp_From_HLG_INVERSE: Mat3 = Mat3::from_cols_array(&[
             0.999998, 1.0, 1.0,
             0.0157186, -0.0157186, 1.02127,
             0.209581, -0.209581, -0.605275,
