@@ -231,7 +231,7 @@ mod math {
             z_axis: Vec3::new(0.0, 0.0, 1.0),
         };
 
-        pub const fn from_cols_arrayt(m: [FType; 9]) -> Self {
+        pub const fn from_cols_array(m: &[FType; 9]) -> Self {
             Self {
                 x_axis: Vec3::new(m[0], m[1], m[2]),
                 y_axis: Vec3::new(m[3], m[4], m[5]),
