@@ -2,7 +2,7 @@
 name = "kolor-64"
 version = "0.1.7"
 authors = ["Karl Bergström <karl.anton.bergstrom@gmail.com>"]
-edition = "2018"
+edition = "2021"
 description = "Color conversions for games & interactive applications."
 keywords = ["game", "color", "colors", "graphics", "rgb"]
 categories = ["graphics", "computer-vision"]
@@ -17,8 +17,8 @@ required-features = ["f64"]
 
 [dependencies]
 serde = { optional = true, version = "1", features = ["derive"] }
-num-traits = { version = "^0.2.14", optional = true, default-features = false }
-glam = { version = "0.17.1", default-features = false, optional = true }
+num-traits = { version = "^0.2.15", optional = true, default-features = false }
+glam = { version = "0.23", default-features = false, optional = true }
 
 [features]
 default = ["color-matrices", "f64", "std-glam"]

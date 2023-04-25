@@ -22,7 +22,7 @@ fn main() {
     out_str += "use super::{
     color::{RGBPrimaries, WhitePoint},
 };
-use crate::{Mat3, const_mat3};\n\n";
+use crate::Mat3;\n\n";
     let mut const_matches = String::with_capacity(conversions.len() * 128);
     for conversion in conversions {
         let src = conversion.input_space();
@@ -32,7 +32,7 @@ use crate::{Mat3, const_mat3};\n\n";
         let to_name = format!("{:?}_{:?}", dst.primaries(), dst.white_point());
         out_str += &format!(
             "#[rustfmt::skip]
-pub const {}_TO_{}: Mat3 = const_mat3!([
+pub const {}_TO_{}: Mat3 = Mat3::from_cols_array(&[
     {:?}, {:?}, {:?},
     {:?}, {:?}, {:?},
     {:?}, {:?}, {:?},

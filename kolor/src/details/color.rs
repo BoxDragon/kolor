@@ -1,9 +1,5 @@
 use super::{conversion::ColorConversion, transform::ColorTransform};
 use crate::{FType, Vec3};
-#[cfg(all(feature = "glam", feature = "f64"))]
-use glam::const_dvec3;
-#[cfg(all(feature = "glam", feature = "f32"))]
-use glam::const_vec3;
 #[cfg(feature = "serde1")]
 use serde::{Deserialize, Serialize};
 
@@ -156,6 +152,7 @@ impl WhitePoint {
             Self::D60 => &[0.9523, 1.00000, 1.00859],
             Self::D65 => &[0.95047, 1.00000, 1.08883],
             Self::D75 => &[0.94972, 1.00000, 1.22638],
+            #[allow(clippy::excessive_precision)]
             Self::P3_DCI => &[0.89458689458, 1.00000, 0.95441595441],
             Self::E => &[1.00000, 1.00000, 1.00000],
             Self::F2 => &[0.99186, 1.00000, 0.67393],
@@ -443,12 +440,12 @@ impl Color {
     pub const fn new(x: FType, y: FType, z: FType, space: ColorSpace) -> Self {
         #[cfg(all(feature = "glam", feature = "f64"))]
         return Self {
-            value: const_dvec3!([x, y, z]),
+            value: glam::f64::DVec3::new(x, y, z),
             space,
         };
         #[cfg(all(feature = "glam", feature = "f32"))]
         return Self {
-            value: const_vec3!([x, y, z]),
+            value: glam::f32::Vec3::new(x, y, z),
             space,
         };
         #[cfg(not(feature = "glam"))]
@@ -465,12 +462,12 @@ impl Color {
     pub const fn srgb(x: FType, y: FType, z: FType) -> Self {
         #[cfg(all(feature = "glam", feature = "f64"))]
         return Self {
-            value: const_dvec3!([x, y, z]),
+            value: glam::f64::DVec3::new(x, y, z),
             space: color_spaces::ENCODED_SRGB,
         };
         #[cfg(all(feature = "glam", feature = "f32"))]
         return Self {
-            value: const_vec3!([x, y, z]),
+            value: glam::f32::Vec3::new(x, y, z),
             space: color_spaces::ENCODED_SRGB,
         };
         #[cfg(not(feature = "glam"))]
