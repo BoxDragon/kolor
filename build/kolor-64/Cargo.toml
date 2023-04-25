@@ -1,6 +1,6 @@
 [package]
 name = "kolor-64"
-version = "0.1.7"
+version = "0.1.9"
 authors = ["Karl Bergström <karl.anton.bergstrom@gmail.com>"]
 edition = "2021"
 description = "Color conversions for games & interactive applications."
