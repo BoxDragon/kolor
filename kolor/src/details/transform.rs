@@ -319,13 +319,11 @@ pub fn CIE_1960_UCS_to_XYZ(color: Vec3, _wp: WhitePoint) -> Vec3 {
 
 #[inline]
 pub fn CIE_1960_UCS_uvV_to_XYZ(color: Vec3, wp: WhitePoint) -> Vec3 {
-    CIE_1960_uvV_to_UCS(color, wp);
-    CIE_1960_UCS_to_XYZ(color, wp)
+    CIE_1960_UCS_to_XYZ(CIE_1960_uvV_to_UCS(color, wp), wp)
 }
 #[inline]
 pub fn XYZ_to_CIE_1960_UCS_uvV(color: Vec3, wp: WhitePoint) -> Vec3 {
-    XYZ_to_CIE_1960_UCS(color, wp);
-    CIE_1960_UCS_to_uvV(color, wp)
+    CIE_1960_UCS_to_uvV(XYZ_to_CIE_1960_UCS(color, wp), wp)
 }
 
 #[inline]
