@@ -25,9 +25,11 @@ a color conversion between any supported color spaces.
 
 For more details on design and implementation, please have a look at the [module docs.](https://docs.rs/kolor/latest/kolor/index.html)
 
-# no_std support
+## no_std support
 kolor supports `no_std` by disabling the default-enabled `std` feature and enabling the `libm` feature.
 
+## f32 vs f64
+[kolor](https://crates.io/crates/kolor) uses 32-bit floats by default, and the f64 support is available in [kolor-64](https://crates.io/crates/kolor-64).
 
 ### Contribution
 
