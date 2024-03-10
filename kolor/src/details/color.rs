@@ -104,7 +104,7 @@ impl RGBPrimaries {
     }
 }
 
-/// A [WhitePoint] defines the color "white" in an RGB color system.
+/// A [WhitePoint] defines the color white ("achromatic point") in an RGB color system.
 /// White points are derived from an "illuminant" which are defined
 /// as some reference lighting condition based on a Spectral Power Distribution.
 #[repr(u8)]
@@ -141,6 +141,9 @@ pub enum WhitePoint {
 }
 impl WhitePoint {
     pub const ENUM_COUNT: WhitePoint = WhitePoint::F11;
+    // Pulled from http://www.brucelindbloom.com/index.html?Eqn_ChromAdapt.html
+    // Originally from ASTM E308-01 except B which comes from Wyszecki & Stiles, p. 769
+    // P3_DCI is something I calculated myself from wikipedia constants
     pub const fn values(&self) -> &'static [FType; 3] {
         match self {
             Self::NONE => &[0.0, 0.0, 0.0],
