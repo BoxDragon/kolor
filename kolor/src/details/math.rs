@@ -38,7 +38,7 @@ mod math {
 #[cfg(not(feature = "glam"))]
 #[allow(clippy::module_inception)]
 mod math {
-    use crate::FType;
+    use crate::Float;
     #[cfg(all(not(feature = "std"), feature = "libm"))]
     use core::ops::{Add, Div, Mul, MulAssign, Sub};
     #[cfg(all(not(feature = "std"), feature = "libm"))]
@@ -46,12 +46,12 @@ mod math {
     #[cfg(all(not(feature = "libm"), feature = "std"))]
     use std::ops::{Add, Div, Mul, MulAssign, Sub};
 
-    #[cfg_attr(feature = "serde1", derive(Serialize, Deserialize))]
+    #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
     #[derive(Debug, Clone, Copy, PartialEq)]
     pub struct Vec3 {
-        pub x: FType,
-        pub y: FType,
-        pub z: FType,
+        pub x: Float,
+        pub y: Float,
+        pub z: Float,
     }
 
     pub struct BVec3 {
@@ -61,11 +61,11 @@ mod math {
     }
 
     impl Vec3 {
-        pub const fn new(x: FType, y: FType, z: FType) -> Self {
+        pub const fn new(x: Float, y: Float, z: Float) -> Self {
             Self { x, y, z }
         }
 
-        pub const fn splat(value: FType) -> Self {
+        pub const fn splat(value: Float) -> Self {
             Self {
                 x: value,
                 y: value,
@@ -73,7 +73,7 @@ mod math {
             }
         }
 
-        pub const fn from_slice(slice: &[FType]) -> Self {
+        pub const fn from_slice(slice: &[Float]) -> Self {
             Self {
                 x: slice[0],
                 y: slice[1],
@@ -81,7 +81,7 @@ mod math {
             }
         }
 
-        pub fn powf(self, n: FType) -> Self {
+        pub fn powf(self, n: Float) -> Self {
             Self {
                 x: self.x.powf(n),
                 y: self.y.powf(n),
@@ -112,11 +112,11 @@ mod math {
             }
         }
 
-        pub fn dot(self, other: Self) -> FType {
+        pub fn dot(self, other: Self) -> Float {
             self.x * other.x + self.y * other.y + self.z * other.z
         }
 
-        pub fn abs_diff_eq(self, other: Self, max_abs_diff: FType) -> bool {
+        pub fn abs_diff_eq(self, other: Self, max_abs_diff: Float) -> bool {
             (self.x - other.x).abs() <= max_abs_diff
                 && (self.y - other.y).abs() <= max_abs_diff
                 && (self.z - other.z).abs() <= max_abs_diff
@@ -166,16 +166,16 @@ mod math {
         }
     }
 
-    impl MulAssign<FType> for Vec3 {
-        fn mul_assign(&mut self, other: FType) {
+    impl MulAssign<Float> for Vec3 {
+        fn mul_assign(&mut self, other: Float) {
             *self = *self * other
         }
     }
 
-    impl Mul<FType> for Vec3 {
+    impl Mul<Float> for Vec3 {
         type Output = Self;
 
-        fn mul(self, other: FType) -> Self {
+        fn mul(self, other: Float) -> Self {
             Self {
                 x: self.x * other,
                 y: self.y * other,
@@ -184,7 +184,7 @@ mod math {
         }
     }
 
-    impl Mul<Vec3> for FType {
+    impl Mul<Vec3> for Float {
         type Output = Vec3;
 
         fn mul(self, other: Vec3) -> Vec3 {
@@ -192,10 +192,10 @@ mod math {
         }
     }
 
-    impl Div<FType> for Vec3 {
+    impl Div<Float> for Vec3 {
         type Output = Self;
 
-        fn div(self, other: FType) -> Self {
+        fn div(self, other: Float) -> Self {
             Self {
                 x: self.x / other,
                 y: self.y / other,
@@ -206,17 +206,17 @@ mod math {
 
     #[derive(Debug, Clone, Copy, PartialEq)]
     pub struct Vec2 {
-        pub x: FType,
-        pub y: FType,
+        pub x: Float,
+        pub y: Float,
     }
 
     impl Vec2 {
-        pub fn length(self) -> FType {
+        pub fn length(self) -> Float {
             (self.x * self.x + self.y * self.y).sqrt()
         }
     }
 
-    #[cfg_attr(feature = "serde1", derive(Serialize, Deserialize))]
+    #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
     #[derive(Debug, Clone, Copy, PartialEq)]
     pub struct Mat3 {
         pub x_axis: Vec3,
@@ -231,7 +231,7 @@ mod math {
             z_axis: Vec3::new(0.0, 0.0, 1.0),
         };
 
-        pub const fn from_cols_array(m: &[FType; 9]) -> Self {
+        pub const fn from_cols_array(m: &[Float; 9]) -> Self {
             Self {
                 x_axis: Vec3::new(m[0], m[1], m[2]),
                 y_axis: Vec3::new(m[3], m[4], m[5]),
@@ -289,6 +289,7 @@ mod math {
 
     impl Mul<Vec3> for Mat3 {
         type Output = Vec3;
+
         #[inline]
         fn mul(self, other: Vec3) -> Vec3 {
             let r0 = Vec3::new(self.x_axis.x, self.y_axis.x, self.z_axis.x);
@@ -301,6 +302,7 @@ mod math {
 
     impl Mul<Mat3> for Mat3 {
         type Output = Mat3;
+
         #[inline]
         fn mul(self, other: Self) -> Self {
             let r0 = Vec3::new(self.x_axis.x, self.y_axis.x, self.z_axis.x);
@@ -327,8 +329,8 @@ mod math {
         }
     }
 
-    impl From<[FType; 3]> for Vec3 {
-        fn from(values: [FType; 3]) -> Self {
+    impl From<[Float; 3]> for Vec3 {
+        fn from(values: [Float; 3]) -> Self {
             Self {
                 x: values[0],
                 y: values[1],
@@ -337,7 +339,7 @@ mod math {
         }
     }
 
-    impl From<Vec3> for [FType; 3] {
+    impl From<Vec3> for [Float; 3] {
         fn from(v: Vec3) -> Self {
             [v.x, v.y, v.z]
         }

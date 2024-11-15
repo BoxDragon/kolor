@@ -20,7 +20,7 @@ fn main() {
     }
     let mut out_str = String::with_capacity(conversions.len() * 256);
     out_str += "use super::{
-    color::{RGBPrimaries, WhitePoint},
+    color::{RgbPrimaries, WhitePoint},
 };
 use crate::Mat3;\n\n";
     let mut const_matches = String::with_capacity(conversions.len() * 128);
@@ -53,7 +53,7 @@ pub const {}_TO_{}: Mat3 = Mat3::from_cols_array(&[
 
         const_matches += &format!(
             "
-        (RGBPrimaries::{:?}, WhitePoint::{:?}, RGBPrimaries::{:?}, WhitePoint::{:?}) => {{
+        (RgbPrimaries::{:?}, WhitePoint::{:?}, RgbPrimaries::{:?}, WhitePoint::{:?}) => {{
             Some({}_TO_{})
         }}",
             src.primaries(),
@@ -68,9 +68,9 @@ pub const {}_TO_{}: Mat3 = Mat3::from_cols_array(&[
     out_str += &format!(
         r#"
 pub fn const_conversion_matrix(
-    src_primaries: RGBPrimaries,
+    src_primaries: RgbPrimaries,
     src_wp: WhitePoint,
-    dst_primaries: RGBPrimaries,
+    dst_primaries: RgbPrimaries,
     dst_wp: WhitePoint,
 ) -> Option<Mat3> {{
     if src_primaries == dst_primaries && src_wp == dst_wp {{

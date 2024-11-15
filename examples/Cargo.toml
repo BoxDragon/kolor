@@ -12,4 +12,4 @@ name = "all_examples"
 path = "./all_examples.rs"
 
 [dependencies]
-kolor = { path = "../build/kolor", version = "0.1.9" }
+kolor = { path = "../build/kolor", version = "0.2" }
