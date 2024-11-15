@@ -25,7 +25,7 @@ let aces_cg_color = conversion.convert(srgb_color);
 vectors, such as RGB, LAB, XYZ, HSL, LMS and more.
 
 In the spirit of keeping things simple, kolor uses a single type,
-[ColorConversion](https://docs.rs/kolor/latest/kolor/struct.ColorConversion.html),
+[`ColorConversion`](https://docs.rs/kolor/latest/kolor/struct.ColorConversion.html),
 to represent a color conversion between any supported color spaces.
 
 For more details on design and implementation, please have a look at the
@@ -54,13 +54,14 @@ See [LICENSE-APACHE](LICENSE-APACHE) and [LICENSE-MIT](LICENSE-MIT).
 
 Licensed under either of
 
-* Apache License, Version 2.0, ([LICENSE-APACHE](LICENSE-APACHE) or
+- Apache License, Version 2.0, ([LICENSE-APACHE](LICENSE-APACHE) or
   http://www.apache.org/licenses/LICENSE-2.0)
-* MIT license ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
+
+- MIT license ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
 
 at your option.
 
-**Please note** that some dependencies may be licensed under *other* terms.
-These are listed in [deny.toml](deny.toml) under licenses.exceptions on a
+**Please note** that some dependencies may be licensed under _other_ terms.
+These are listed in [`deny.toml`](deny.toml) under licenses.exceptions on a
 best-effort basis, and are validated in every CI run using
-[cargo-deny](https://github.com/EmbarkStudios/cargo-deny).
+[`cargo-deny`](https://github.com/EmbarkStudios/cargo-deny).
