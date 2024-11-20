@@ -1,15 +1,15 @@
 use super::{
-    color::{RGBPrimaries, TransformFn},
+    color::{RgbPrimaries, TransformFn},
     transform::ColorTransform,
     xyz::{rgb_to_xyz, xyz_to_rgb},
 };
-use crate::{ColorSpace, FType, Mat3, Vec3};
-#[cfg(feature = "serde1")]
+use crate::{ColorSpace, Float, Mat3, Vec3};
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
 /// A transformation from one linear color space to another.
 #[derive(Copy, Clone, Debug, PartialEq)]
-#[cfg_attr(feature = "serde1", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct LinearColorConversion {
     mat: Mat3,
     input_space: ColorSpace,
@@ -20,12 +20,15 @@ impl LinearColorConversion {
     pub fn input_space(&self) -> ColorSpace {
         self.input_space
     }
+
     pub fn output_space(&self) -> ColorSpace {
         self.output_space
     }
+
     pub fn convert(&self, color: Vec3) -> Vec3 {
         self.mat * color
     }
+
     pub fn matrix(&self) -> Mat3 {
         self.mat
     }
@@ -50,22 +53,22 @@ impl LinearColorConversion {
         let mat = if let Some(const_mat) = const_conversion {
             const_mat
         } else {
-            let src_to_xyz = if src.primaries() == RGBPrimaries::CIE_XYZ {
+            let src_to_xyz = if src.primaries() == RgbPrimaries::CieXyz {
                 Mat3::IDENTITY
             } else {
                 rgb_to_xyz(src.primaries().values(), src.white_point().values())
             };
-            let xyz_to_dst = if dst.primaries() == RGBPrimaries::CIE_XYZ {
+            let xyz_to_dst = if dst.primaries() == RgbPrimaries::CieXyz {
                 Mat3::IDENTITY
             } else {
                 xyz_to_rgb(dst.primaries().values(), dst.white_point().values())
             };
             if src.white_point() != dst.white_point() {
-                let white_point_transform = super::cat::chromatic_adaptation_transform(
-                    Vec3::from_slice(src.white_point().values()),
-                    Vec3::from_slice(dst.white_point().values()),
-                    super::cat::LMSConeSpace::Sharp,
-                );
+                let white_point_transform = super::cat::LmsConeSpace::Sharp
+                    .chromatic_adaptation_transform(
+                        Vec3::from_slice(src.white_point().values()),
+                        Vec3::from_slice(dst.white_point().values()),
+                    );
                 xyz_to_dst * white_point_transform * src_to_xyz
             } else {
                 xyz_to_dst * src_to_xyz
@@ -79,8 +82,8 @@ impl LinearColorConversion {
     }
 }
 
-/// [ColorConversion] defines an operation that maps a 3-component vector
-/// from a source [ColorSpace] to a destination [ColorSpace].
+/// Defines an operation that maps a 3-component vector from a source
+/// [`ColorSpace`] to a destination `ColorSpace`.
 #[derive(Copy, Clone)]
 pub struct ColorConversion {
     src_space: ColorSpace,
@@ -99,12 +102,12 @@ impl core::fmt::Debug for ColorConversion {
         let src_transform = if !self.src_space.is_linear() {
             self.src_space.transform_function()
         } else {
-            TransformFn::NONE
+            TransformFn::None
         };
         let dst_transform = if !self.dst_space.is_linear() {
             self.dst_space.transform_function()
         } else {
-            TransformFn::NONE
+            TransformFn::None
         };
         f.debug_struct("ColorConversion")
             .field("src_space", &self.src_space)
@@ -119,7 +122,7 @@ impl core::fmt::Debug for ColorConversion {
 impl ColorConversion {
     pub fn new(src: ColorSpace, dst: ColorSpace) -> Self {
         let src_transform = if !src.is_linear() {
-            ColorTransform::new(src.transform_function(), TransformFn::NONE)
+            ColorTransform::new(src.transform_function(), TransformFn::None)
         } else {
             None
         };
@@ -132,7 +135,7 @@ impl ColorConversion {
             Some(linear_transform)
         };
         let dst_transform = if !dst.is_linear() {
-            ColorTransform::new(TransformFn::NONE, dst.transform_function())
+            ColorTransform::new(TransformFn::None, dst.transform_function())
         } else {
             None
         };
@@ -144,12 +147,15 @@ impl ColorConversion {
             linear_transform,
         }
     }
+
     pub fn invert(&self) -> Self {
         ColorConversion::new(self.dst_space, self.src_space)
     }
+
     pub fn is_linear(&self) -> bool {
         self.src_transform.is_none() && self.dst_transform.is_none()
     }
+
     pub fn linear_part(&self) -> LinearColorConversion {
         if let Some(transform) = self.linear_transform.as_ref() {
             *transform
@@ -161,32 +167,40 @@ impl ColorConversion {
             }
         }
     }
+
     pub fn src_transform(&self) -> Option<ColorTransform> {
         self.src_transform
     }
+
     pub fn dst_transform(&self) -> Option<ColorTransform> {
         self.dst_transform
     }
+
     pub fn src_transform_fn(&self) -> TransformFn {
         self.src_transform
             .map(|_| self.src_space.transform_function())
-            .unwrap_or(TransformFn::NONE)
+            .unwrap_or(TransformFn::None)
     }
+
     pub fn dst_transform_fn(&self) -> TransformFn {
         self.dst_transform
             .map(|_| self.dst_space.transform_function())
-            .unwrap_or(TransformFn::NONE)
+            .unwrap_or(TransformFn::None)
     }
+
     pub fn src_space(&self) -> ColorSpace {
         self.src_space
     }
+
     pub fn dst_space(&self) -> ColorSpace {
         self.dst_space
     }
-    pub fn convert_float(&self, color: &mut [FType; 3]) {
+
+    pub fn convert_float(&self, color: &mut [Float; 3]) {
         let vec3 = Vec3::from_slice(color);
         *color = self.convert(vec3).into();
     }
+
     pub fn apply_src_transform(&self, color: Vec3) -> Vec3 {
         if let Some(src_transform) = self.src_transform.as_ref() {
             src_transform.apply(color, self.src_space.white_point())
@@ -194,6 +208,7 @@ impl ColorConversion {
             color
         }
     }
+
     pub fn apply_linear_part(&self, color: Vec3) -> Vec3 {
         if let Some(transform) = self.linear_transform.as_ref() {
             transform.convert(color)
@@ -201,6 +216,7 @@ impl ColorConversion {
             color
         }
     }
+
     pub fn apply_dst_transform(&self, color: Vec3) -> Vec3 {
         if let Some(dst_transform) = self.dst_transform.as_ref() {
             dst_transform.apply(color, self.dst_space.white_point())
@@ -208,6 +224,7 @@ impl ColorConversion {
             color
         }
     }
+
     pub fn convert(&self, mut color: Vec3) -> Vec3 {
         color = self.apply_src_transform(color);
         color = self.apply_linear_part(color);

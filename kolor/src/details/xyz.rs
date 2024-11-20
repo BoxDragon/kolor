@@ -1,12 +1,12 @@
-use crate::{FType, Mat3, Vec3};
+use crate::{Float, Mat3, Vec3};
 
-pub fn xyz_to_rgb(primaries: &[[FType; 2]; 3], white_point: &[FType; 3]) -> Mat3 {
+pub fn xyz_to_rgb(primaries: &[[Float; 2]; 3], white_point: &[Float; 3]) -> Mat3 {
     rgb_to_xyz(primaries, white_point).inverse()
 }
 
 #[rustfmt::skip]
 #[allow(non_snake_case)]
-pub fn rgb_to_xyz(primaries: &[[FType;2]; 3], white_point: &[FType;3]) -> Mat3 {
+pub fn rgb_to_xyz(primaries: &[[Float;2]; 3], white_point: &[Float;3]) -> Mat3 {
     let [[xr, yr], [xg, yg], [xb, yb]] = *primaries;
     let [Wx, Wy, Wz] = *white_point;
 

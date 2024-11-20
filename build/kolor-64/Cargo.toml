@@ -1,6 +1,6 @@
 [package]
 name = "kolor-64"
-version = "0.1.9"
+version = "0.2.0"
 authors = ["Karl Bergström <karl.anton.bergstrom@gmail.com>"]
 edition = "2021"
 description = "Color conversions for games & interactive applications."
@@ -16,16 +16,24 @@ path = "../../kolor/src/lib.rs"
 required-features = ["f64"]
 
 [dependencies]
+document-features = "0.2"
+glam = { version = "0.29", default-features = false, optional = true }
+num-traits = { version = "0.2", optional = true, default-features = false }
 serde = { optional = true, version = "1", features = ["derive"] }
-num-traits = { version = "^0.2.15", optional = true, default-features = false }
-glam = { version = "0.23", default-features = false, optional = true }
 
 [features]
-default = ["color-matrices", "f64", "std-glam"]
-serde1 = ["serde", "glam/serde"]
+default = ["std-glam", "color-matrices", "f64"]
+## Add a bunch of common color spaces.
 color-matrices = []
+## Use `f64` instead of `f32` for calculations.
 f64 = []
+## Add support for `serde`'s `Serialize` and `Deserialize` on `kolor` types.
+serde = ["dep:serde", "glam/serde"]
+## Enable `std` support.
 std = []
+## Enable `glam` with `std` support.
 std-glam = ["std", "glam/std"]
+## Enable [`libm`](https://docs.rs/libm) support.
 libm = ["num-traits", "num-traits/libm"]
+## Enable `glam` with `libm` support.
 libm-glam = ["libm", "glam/libm"]

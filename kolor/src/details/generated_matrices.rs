@@ -1,4 +1,4 @@
-use super::color::{RGBPrimaries, WhitePoint};
+use super::color::{RgbPrimaries, WhitePoint};
 use crate::Mat3;
 
 #[rustfmt::skip]
@@ -1094,481 +1094,481 @@ pub const ADOBE_WIDE_D50_TO_ADOBE_1998_D65: Mat3 = Mat3::from_cols_array(&[
 ]);
 
 pub fn const_conversion_matrix(
-    src_primaries: RGBPrimaries,
+    src_primaries: RgbPrimaries,
     src_wp: WhitePoint,
-    dst_primaries: RGBPrimaries,
+    dst_primaries: RgbPrimaries,
     dst_wp: WhitePoint,
 ) -> Option<Mat3> {
     if src_primaries == dst_primaries && src_wp == dst_wp {
         return Some(Mat3::IDENTITY);
     }
     match (src_primaries, src_wp, dst_primaries, dst_wp) {
-        (RGBPrimaries::BT_709, WhitePoint::D65, RGBPrimaries::BT_2020, WhitePoint::D65) => {
+        (RgbPrimaries::Bt709, WhitePoint::D65, RgbPrimaries::Bt2020, WhitePoint::D65) => {
             Some(BT_709_D65_TO_BT_2020_D65)
         }
-        (RGBPrimaries::BT_709, WhitePoint::D65, RGBPrimaries::AP1, WhitePoint::D60) => {
+        (RgbPrimaries::Bt709, WhitePoint::D65, RgbPrimaries::Ap1, WhitePoint::D60) => {
             Some(BT_709_D65_TO_AP1_D60)
         }
-        (RGBPrimaries::BT_709, WhitePoint::D65, RGBPrimaries::AP0, WhitePoint::D60) => {
+        (RgbPrimaries::Bt709, WhitePoint::D65, RgbPrimaries::Ap0, WhitePoint::D60) => {
             Some(BT_709_D65_TO_AP0_D60)
         }
-        (RGBPrimaries::BT_709, WhitePoint::D65, RGBPrimaries::CIE_RGB, WhitePoint::E) => {
+        (RgbPrimaries::Bt709, WhitePoint::D65, RgbPrimaries::CieRgb, WhitePoint::E) => {
             Some(BT_709_D65_TO_CIE_RGB_E)
         }
-        (RGBPrimaries::BT_709, WhitePoint::D65, RGBPrimaries::CIE_XYZ, WhitePoint::D65) => {
+        (RgbPrimaries::Bt709, WhitePoint::D65, RgbPrimaries::CieXyz, WhitePoint::D65) => {
             Some(BT_709_D65_TO_CIE_XYZ_D65)
         }
-        (RGBPrimaries::BT_709, WhitePoint::D65, RGBPrimaries::PRO_PHOTO, WhitePoint::D50) => {
+        (RgbPrimaries::Bt709, WhitePoint::D65, RgbPrimaries::ProPhoto, WhitePoint::D50) => {
             Some(BT_709_D65_TO_PRO_PHOTO_D50)
         }
-        (RGBPrimaries::BT_709, WhitePoint::D65, RGBPrimaries::APPLE, WhitePoint::D65) => {
+        (RgbPrimaries::Bt709, WhitePoint::D65, RgbPrimaries::Apple, WhitePoint::D65) => {
             Some(BT_709_D65_TO_APPLE_D65)
         }
-        (RGBPrimaries::BT_709, WhitePoint::D65, RGBPrimaries::P3, WhitePoint::D60) => {
+        (RgbPrimaries::Bt709, WhitePoint::D65, RgbPrimaries::P3, WhitePoint::D60) => {
             Some(BT_709_D65_TO_P3_D60)
         }
-        (RGBPrimaries::BT_709, WhitePoint::D65, RGBPrimaries::P3, WhitePoint::P3_DCI) => {
+        (RgbPrimaries::Bt709, WhitePoint::D65, RgbPrimaries::P3, WhitePoint::P3Dci) => {
             Some(BT_709_D65_TO_P3_P3_DCI)
         }
-        (RGBPrimaries::BT_709, WhitePoint::D65, RGBPrimaries::P3, WhitePoint::D65) => {
+        (RgbPrimaries::Bt709, WhitePoint::D65, RgbPrimaries::P3, WhitePoint::D65) => {
             Some(BT_709_D65_TO_P3_D65)
         }
-        (RGBPrimaries::BT_709, WhitePoint::D65, RGBPrimaries::ADOBE_1998, WhitePoint::D65) => {
+        (RgbPrimaries::Bt709, WhitePoint::D65, RgbPrimaries::Adobe1998, WhitePoint::D65) => {
             Some(BT_709_D65_TO_ADOBE_1998_D65)
         }
-        (RGBPrimaries::BT_709, WhitePoint::D65, RGBPrimaries::ADOBE_WIDE, WhitePoint::D50) => {
+        (RgbPrimaries::Bt709, WhitePoint::D65, RgbPrimaries::AdobeWide, WhitePoint::D50) => {
             Some(BT_709_D65_TO_ADOBE_WIDE_D50)
         }
-        (RGBPrimaries::BT_2020, WhitePoint::D65, RGBPrimaries::BT_709, WhitePoint::D65) => {
+        (RgbPrimaries::Bt2020, WhitePoint::D65, RgbPrimaries::Bt709, WhitePoint::D65) => {
             Some(BT_2020_D65_TO_BT_709_D65)
         }
-        (RGBPrimaries::BT_2020, WhitePoint::D65, RGBPrimaries::AP1, WhitePoint::D60) => {
+        (RgbPrimaries::Bt2020, WhitePoint::D65, RgbPrimaries::Ap1, WhitePoint::D60) => {
             Some(BT_2020_D65_TO_AP1_D60)
         }
-        (RGBPrimaries::BT_2020, WhitePoint::D65, RGBPrimaries::AP0, WhitePoint::D60) => {
+        (RgbPrimaries::Bt2020, WhitePoint::D65, RgbPrimaries::Ap0, WhitePoint::D60) => {
             Some(BT_2020_D65_TO_AP0_D60)
         }
-        (RGBPrimaries::BT_2020, WhitePoint::D65, RGBPrimaries::CIE_RGB, WhitePoint::E) => {
+        (RgbPrimaries::Bt2020, WhitePoint::D65, RgbPrimaries::CieRgb, WhitePoint::E) => {
             Some(BT_2020_D65_TO_CIE_RGB_E)
         }
-        (RGBPrimaries::BT_2020, WhitePoint::D65, RGBPrimaries::CIE_XYZ, WhitePoint::D65) => {
+        (RgbPrimaries::Bt2020, WhitePoint::D65, RgbPrimaries::CieXyz, WhitePoint::D65) => {
             Some(BT_2020_D65_TO_CIE_XYZ_D65)
         }
-        (RGBPrimaries::BT_2020, WhitePoint::D65, RGBPrimaries::PRO_PHOTO, WhitePoint::D50) => {
+        (RgbPrimaries::Bt2020, WhitePoint::D65, RgbPrimaries::ProPhoto, WhitePoint::D50) => {
             Some(BT_2020_D65_TO_PRO_PHOTO_D50)
         }
-        (RGBPrimaries::BT_2020, WhitePoint::D65, RGBPrimaries::APPLE, WhitePoint::D65) => {
+        (RgbPrimaries::Bt2020, WhitePoint::D65, RgbPrimaries::Apple, WhitePoint::D65) => {
             Some(BT_2020_D65_TO_APPLE_D65)
         }
-        (RGBPrimaries::BT_2020, WhitePoint::D65, RGBPrimaries::P3, WhitePoint::D60) => {
+        (RgbPrimaries::Bt2020, WhitePoint::D65, RgbPrimaries::P3, WhitePoint::D60) => {
             Some(BT_2020_D65_TO_P3_D60)
         }
-        (RGBPrimaries::BT_2020, WhitePoint::D65, RGBPrimaries::P3, WhitePoint::P3_DCI) => {
+        (RgbPrimaries::Bt2020, WhitePoint::D65, RgbPrimaries::P3, WhitePoint::P3Dci) => {
             Some(BT_2020_D65_TO_P3_P3_DCI)
         }
-        (RGBPrimaries::BT_2020, WhitePoint::D65, RGBPrimaries::P3, WhitePoint::D65) => {
+        (RgbPrimaries::Bt2020, WhitePoint::D65, RgbPrimaries::P3, WhitePoint::D65) => {
             Some(BT_2020_D65_TO_P3_D65)
         }
-        (RGBPrimaries::BT_2020, WhitePoint::D65, RGBPrimaries::ADOBE_1998, WhitePoint::D65) => {
+        (RgbPrimaries::Bt2020, WhitePoint::D65, RgbPrimaries::Adobe1998, WhitePoint::D65) => {
             Some(BT_2020_D65_TO_ADOBE_1998_D65)
         }
-        (RGBPrimaries::BT_2020, WhitePoint::D65, RGBPrimaries::ADOBE_WIDE, WhitePoint::D50) => {
+        (RgbPrimaries::Bt2020, WhitePoint::D65, RgbPrimaries::AdobeWide, WhitePoint::D50) => {
             Some(BT_2020_D65_TO_ADOBE_WIDE_D50)
         }
-        (RGBPrimaries::AP1, WhitePoint::D60, RGBPrimaries::BT_709, WhitePoint::D65) => {
+        (RgbPrimaries::Ap1, WhitePoint::D60, RgbPrimaries::Bt709, WhitePoint::D65) => {
             Some(AP1_D60_TO_BT_709_D65)
         }
-        (RGBPrimaries::AP1, WhitePoint::D60, RGBPrimaries::BT_2020, WhitePoint::D65) => {
+        (RgbPrimaries::Ap1, WhitePoint::D60, RgbPrimaries::Bt2020, WhitePoint::D65) => {
             Some(AP1_D60_TO_BT_2020_D65)
         }
-        (RGBPrimaries::AP1, WhitePoint::D60, RGBPrimaries::AP0, WhitePoint::D60) => {
+        (RgbPrimaries::Ap1, WhitePoint::D60, RgbPrimaries::Ap0, WhitePoint::D60) => {
             Some(AP1_D60_TO_AP0_D60)
         }
-        (RGBPrimaries::AP1, WhitePoint::D60, RGBPrimaries::CIE_RGB, WhitePoint::E) => {
+        (RgbPrimaries::Ap1, WhitePoint::D60, RgbPrimaries::CieRgb, WhitePoint::E) => {
             Some(AP1_D60_TO_CIE_RGB_E)
         }
-        (RGBPrimaries::AP1, WhitePoint::D60, RGBPrimaries::CIE_XYZ, WhitePoint::D65) => {
+        (RgbPrimaries::Ap1, WhitePoint::D60, RgbPrimaries::CieXyz, WhitePoint::D65) => {
             Some(AP1_D60_TO_CIE_XYZ_D65)
         }
-        (RGBPrimaries::AP1, WhitePoint::D60, RGBPrimaries::PRO_PHOTO, WhitePoint::D50) => {
+        (RgbPrimaries::Ap1, WhitePoint::D60, RgbPrimaries::ProPhoto, WhitePoint::D50) => {
             Some(AP1_D60_TO_PRO_PHOTO_D50)
         }
-        (RGBPrimaries::AP1, WhitePoint::D60, RGBPrimaries::APPLE, WhitePoint::D65) => {
+        (RgbPrimaries::Ap1, WhitePoint::D60, RgbPrimaries::Apple, WhitePoint::D65) => {
             Some(AP1_D60_TO_APPLE_D65)
         }
-        (RGBPrimaries::AP1, WhitePoint::D60, RGBPrimaries::P3, WhitePoint::D60) => {
+        (RgbPrimaries::Ap1, WhitePoint::D60, RgbPrimaries::P3, WhitePoint::D60) => {
             Some(AP1_D60_TO_P3_D60)
         }
-        (RGBPrimaries::AP1, WhitePoint::D60, RGBPrimaries::P3, WhitePoint::P3_DCI) => {
+        (RgbPrimaries::Ap1, WhitePoint::D60, RgbPrimaries::P3, WhitePoint::P3Dci) => {
             Some(AP1_D60_TO_P3_P3_DCI)
         }
-        (RGBPrimaries::AP1, WhitePoint::D60, RGBPrimaries::P3, WhitePoint::D65) => {
+        (RgbPrimaries::Ap1, WhitePoint::D60, RgbPrimaries::P3, WhitePoint::D65) => {
             Some(AP1_D60_TO_P3_D65)
         }
-        (RGBPrimaries::AP1, WhitePoint::D60, RGBPrimaries::ADOBE_1998, WhitePoint::D65) => {
+        (RgbPrimaries::Ap1, WhitePoint::D60, RgbPrimaries::Adobe1998, WhitePoint::D65) => {
             Some(AP1_D60_TO_ADOBE_1998_D65)
         }
-        (RGBPrimaries::AP1, WhitePoint::D60, RGBPrimaries::ADOBE_WIDE, WhitePoint::D50) => {
+        (RgbPrimaries::Ap1, WhitePoint::D60, RgbPrimaries::AdobeWide, WhitePoint::D50) => {
             Some(AP1_D60_TO_ADOBE_WIDE_D50)
         }
-        (RGBPrimaries::AP0, WhitePoint::D60, RGBPrimaries::BT_709, WhitePoint::D65) => {
+        (RgbPrimaries::Ap0, WhitePoint::D60, RgbPrimaries::Bt709, WhitePoint::D65) => {
             Some(AP0_D60_TO_BT_709_D65)
         }
-        (RGBPrimaries::AP0, WhitePoint::D60, RGBPrimaries::BT_2020, WhitePoint::D65) => {
+        (RgbPrimaries::Ap0, WhitePoint::D60, RgbPrimaries::Bt2020, WhitePoint::D65) => {
             Some(AP0_D60_TO_BT_2020_D65)
         }
-        (RGBPrimaries::AP0, WhitePoint::D60, RGBPrimaries::AP1, WhitePoint::D60) => {
+        (RgbPrimaries::Ap0, WhitePoint::D60, RgbPrimaries::Ap1, WhitePoint::D60) => {
             Some(AP0_D60_TO_AP1_D60)
         }
-        (RGBPrimaries::AP0, WhitePoint::D60, RGBPrimaries::CIE_RGB, WhitePoint::E) => {
+        (RgbPrimaries::Ap0, WhitePoint::D60, RgbPrimaries::CieRgb, WhitePoint::E) => {
             Some(AP0_D60_TO_CIE_RGB_E)
         }
-        (RGBPrimaries::AP0, WhitePoint::D60, RGBPrimaries::CIE_XYZ, WhitePoint::D65) => {
+        (RgbPrimaries::Ap0, WhitePoint::D60, RgbPrimaries::CieXyz, WhitePoint::D65) => {
             Some(AP0_D60_TO_CIE_XYZ_D65)
         }
-        (RGBPrimaries::AP0, WhitePoint::D60, RGBPrimaries::PRO_PHOTO, WhitePoint::D50) => {
+        (RgbPrimaries::Ap0, WhitePoint::D60, RgbPrimaries::ProPhoto, WhitePoint::D50) => {
             Some(AP0_D60_TO_PRO_PHOTO_D50)
         }
-        (RGBPrimaries::AP0, WhitePoint::D60, RGBPrimaries::APPLE, WhitePoint::D65) => {
+        (RgbPrimaries::Ap0, WhitePoint::D60, RgbPrimaries::Apple, WhitePoint::D65) => {
             Some(AP0_D60_TO_APPLE_D65)
         }
-        (RGBPrimaries::AP0, WhitePoint::D60, RGBPrimaries::P3, WhitePoint::D60) => {
+        (RgbPrimaries::Ap0, WhitePoint::D60, RgbPrimaries::P3, WhitePoint::D60) => {
             Some(AP0_D60_TO_P3_D60)
         }
-        (RGBPrimaries::AP0, WhitePoint::D60, RGBPrimaries::P3, WhitePoint::P3_DCI) => {
+        (RgbPrimaries::Ap0, WhitePoint::D60, RgbPrimaries::P3, WhitePoint::P3Dci) => {
             Some(AP0_D60_TO_P3_P3_DCI)
         }
-        (RGBPrimaries::AP0, WhitePoint::D60, RGBPrimaries::P3, WhitePoint::D65) => {
+        (RgbPrimaries::Ap0, WhitePoint::D60, RgbPrimaries::P3, WhitePoint::D65) => {
             Some(AP0_D60_TO_P3_D65)
         }
-        (RGBPrimaries::AP0, WhitePoint::D60, RGBPrimaries::ADOBE_1998, WhitePoint::D65) => {
+        (RgbPrimaries::Ap0, WhitePoint::D60, RgbPrimaries::Adobe1998, WhitePoint::D65) => {
             Some(AP0_D60_TO_ADOBE_1998_D65)
         }
-        (RGBPrimaries::AP0, WhitePoint::D60, RGBPrimaries::ADOBE_WIDE, WhitePoint::D50) => {
+        (RgbPrimaries::Ap0, WhitePoint::D60, RgbPrimaries::AdobeWide, WhitePoint::D50) => {
             Some(AP0_D60_TO_ADOBE_WIDE_D50)
         }
-        (RGBPrimaries::CIE_RGB, WhitePoint::E, RGBPrimaries::BT_709, WhitePoint::D65) => {
+        (RgbPrimaries::CieRgb, WhitePoint::E, RgbPrimaries::Bt709, WhitePoint::D65) => {
             Some(CIE_RGB_E_TO_BT_709_D65)
         }
-        (RGBPrimaries::CIE_RGB, WhitePoint::E, RGBPrimaries::BT_2020, WhitePoint::D65) => {
+        (RgbPrimaries::CieRgb, WhitePoint::E, RgbPrimaries::Bt2020, WhitePoint::D65) => {
             Some(CIE_RGB_E_TO_BT_2020_D65)
         }
-        (RGBPrimaries::CIE_RGB, WhitePoint::E, RGBPrimaries::AP1, WhitePoint::D60) => {
+        (RgbPrimaries::CieRgb, WhitePoint::E, RgbPrimaries::Ap1, WhitePoint::D60) => {
             Some(CIE_RGB_E_TO_AP1_D60)
         }
-        (RGBPrimaries::CIE_RGB, WhitePoint::E, RGBPrimaries::AP0, WhitePoint::D60) => {
+        (RgbPrimaries::CieRgb, WhitePoint::E, RgbPrimaries::Ap0, WhitePoint::D60) => {
             Some(CIE_RGB_E_TO_AP0_D60)
         }
-        (RGBPrimaries::CIE_RGB, WhitePoint::E, RGBPrimaries::CIE_XYZ, WhitePoint::D65) => {
+        (RgbPrimaries::CieRgb, WhitePoint::E, RgbPrimaries::CieXyz, WhitePoint::D65) => {
             Some(CIE_RGB_E_TO_CIE_XYZ_D65)
         }
-        (RGBPrimaries::CIE_RGB, WhitePoint::E, RGBPrimaries::PRO_PHOTO, WhitePoint::D50) => {
+        (RgbPrimaries::CieRgb, WhitePoint::E, RgbPrimaries::ProPhoto, WhitePoint::D50) => {
             Some(CIE_RGB_E_TO_PRO_PHOTO_D50)
         }
-        (RGBPrimaries::CIE_RGB, WhitePoint::E, RGBPrimaries::APPLE, WhitePoint::D65) => {
+        (RgbPrimaries::CieRgb, WhitePoint::E, RgbPrimaries::Apple, WhitePoint::D65) => {
             Some(CIE_RGB_E_TO_APPLE_D65)
         }
-        (RGBPrimaries::CIE_RGB, WhitePoint::E, RGBPrimaries::P3, WhitePoint::D60) => {
+        (RgbPrimaries::CieRgb, WhitePoint::E, RgbPrimaries::P3, WhitePoint::D60) => {
             Some(CIE_RGB_E_TO_P3_D60)
         }
-        (RGBPrimaries::CIE_RGB, WhitePoint::E, RGBPrimaries::P3, WhitePoint::P3_DCI) => {
+        (RgbPrimaries::CieRgb, WhitePoint::E, RgbPrimaries::P3, WhitePoint::P3Dci) => {
             Some(CIE_RGB_E_TO_P3_P3_DCI)
         }
-        (RGBPrimaries::CIE_RGB, WhitePoint::E, RGBPrimaries::P3, WhitePoint::D65) => {
+        (RgbPrimaries::CieRgb, WhitePoint::E, RgbPrimaries::P3, WhitePoint::D65) => {
             Some(CIE_RGB_E_TO_P3_D65)
         }
-        (RGBPrimaries::CIE_RGB, WhitePoint::E, RGBPrimaries::ADOBE_1998, WhitePoint::D65) => {
+        (RgbPrimaries::CieRgb, WhitePoint::E, RgbPrimaries::Adobe1998, WhitePoint::D65) => {
             Some(CIE_RGB_E_TO_ADOBE_1998_D65)
         }
-        (RGBPrimaries::CIE_RGB, WhitePoint::E, RGBPrimaries::ADOBE_WIDE, WhitePoint::D50) => {
+        (RgbPrimaries::CieRgb, WhitePoint::E, RgbPrimaries::AdobeWide, WhitePoint::D50) => {
             Some(CIE_RGB_E_TO_ADOBE_WIDE_D50)
         }
-        (RGBPrimaries::CIE_XYZ, WhitePoint::D65, RGBPrimaries::BT_709, WhitePoint::D65) => {
+        (RgbPrimaries::CieXyz, WhitePoint::D65, RgbPrimaries::Bt709, WhitePoint::D65) => {
             Some(CIE_XYZ_D65_TO_BT_709_D65)
         }
-        (RGBPrimaries::CIE_XYZ, WhitePoint::D65, RGBPrimaries::BT_2020, WhitePoint::D65) => {
+        (RgbPrimaries::CieXyz, WhitePoint::D65, RgbPrimaries::Bt2020, WhitePoint::D65) => {
             Some(CIE_XYZ_D65_TO_BT_2020_D65)
         }
-        (RGBPrimaries::CIE_XYZ, WhitePoint::D65, RGBPrimaries::AP1, WhitePoint::D60) => {
+        (RgbPrimaries::CieXyz, WhitePoint::D65, RgbPrimaries::Ap1, WhitePoint::D60) => {
             Some(CIE_XYZ_D65_TO_AP1_D60)
         }
-        (RGBPrimaries::CIE_XYZ, WhitePoint::D65, RGBPrimaries::AP0, WhitePoint::D60) => {
+        (RgbPrimaries::CieXyz, WhitePoint::D65, RgbPrimaries::Ap0, WhitePoint::D60) => {
             Some(CIE_XYZ_D65_TO_AP0_D60)
         }
-        (RGBPrimaries::CIE_XYZ, WhitePoint::D65, RGBPrimaries::CIE_RGB, WhitePoint::E) => {
+        (RgbPrimaries::CieXyz, WhitePoint::D65, RgbPrimaries::CieRgb, WhitePoint::E) => {
             Some(CIE_XYZ_D65_TO_CIE_RGB_E)
         }
-        (RGBPrimaries::CIE_XYZ, WhitePoint::D65, RGBPrimaries::PRO_PHOTO, WhitePoint::D50) => {
+        (RgbPrimaries::CieXyz, WhitePoint::D65, RgbPrimaries::ProPhoto, WhitePoint::D50) => {
             Some(CIE_XYZ_D65_TO_PRO_PHOTO_D50)
         }
-        (RGBPrimaries::CIE_XYZ, WhitePoint::D65, RGBPrimaries::APPLE, WhitePoint::D65) => {
+        (RgbPrimaries::CieXyz, WhitePoint::D65, RgbPrimaries::Apple, WhitePoint::D65) => {
             Some(CIE_XYZ_D65_TO_APPLE_D65)
         }
-        (RGBPrimaries::CIE_XYZ, WhitePoint::D65, RGBPrimaries::P3, WhitePoint::D60) => {
+        (RgbPrimaries::CieXyz, WhitePoint::D65, RgbPrimaries::P3, WhitePoint::D60) => {
             Some(CIE_XYZ_D65_TO_P3_D60)
         }
-        (RGBPrimaries::CIE_XYZ, WhitePoint::D65, RGBPrimaries::P3, WhitePoint::P3_DCI) => {
+        (RgbPrimaries::CieXyz, WhitePoint::D65, RgbPrimaries::P3, WhitePoint::P3Dci) => {
             Some(CIE_XYZ_D65_TO_P3_P3_DCI)
         }
-        (RGBPrimaries::CIE_XYZ, WhitePoint::D65, RGBPrimaries::P3, WhitePoint::D65) => {
+        (RgbPrimaries::CieXyz, WhitePoint::D65, RgbPrimaries::P3, WhitePoint::D65) => {
             Some(CIE_XYZ_D65_TO_P3_D65)
         }
-        (RGBPrimaries::CIE_XYZ, WhitePoint::D65, RGBPrimaries::ADOBE_1998, WhitePoint::D65) => {
+        (RgbPrimaries::CieXyz, WhitePoint::D65, RgbPrimaries::Adobe1998, WhitePoint::D65) => {
             Some(CIE_XYZ_D65_TO_ADOBE_1998_D65)
         }
-        (RGBPrimaries::CIE_XYZ, WhitePoint::D65, RGBPrimaries::ADOBE_WIDE, WhitePoint::D50) => {
+        (RgbPrimaries::CieXyz, WhitePoint::D65, RgbPrimaries::AdobeWide, WhitePoint::D50) => {
             Some(CIE_XYZ_D65_TO_ADOBE_WIDE_D50)
         }
-        (RGBPrimaries::PRO_PHOTO, WhitePoint::D50, RGBPrimaries::BT_709, WhitePoint::D65) => {
+        (RgbPrimaries::ProPhoto, WhitePoint::D50, RgbPrimaries::Bt709, WhitePoint::D65) => {
             Some(PRO_PHOTO_D50_TO_BT_709_D65)
         }
-        (RGBPrimaries::PRO_PHOTO, WhitePoint::D50, RGBPrimaries::BT_2020, WhitePoint::D65) => {
+        (RgbPrimaries::ProPhoto, WhitePoint::D50, RgbPrimaries::Bt2020, WhitePoint::D65) => {
             Some(PRO_PHOTO_D50_TO_BT_2020_D65)
         }
-        (RGBPrimaries::PRO_PHOTO, WhitePoint::D50, RGBPrimaries::AP1, WhitePoint::D60) => {
+        (RgbPrimaries::ProPhoto, WhitePoint::D50, RgbPrimaries::Ap1, WhitePoint::D60) => {
             Some(PRO_PHOTO_D50_TO_AP1_D60)
         }
-        (RGBPrimaries::PRO_PHOTO, WhitePoint::D50, RGBPrimaries::AP0, WhitePoint::D60) => {
+        (RgbPrimaries::ProPhoto, WhitePoint::D50, RgbPrimaries::Ap0, WhitePoint::D60) => {
             Some(PRO_PHOTO_D50_TO_AP0_D60)
         }
-        (RGBPrimaries::PRO_PHOTO, WhitePoint::D50, RGBPrimaries::CIE_RGB, WhitePoint::E) => {
+        (RgbPrimaries::ProPhoto, WhitePoint::D50, RgbPrimaries::CieRgb, WhitePoint::E) => {
             Some(PRO_PHOTO_D50_TO_CIE_RGB_E)
         }
-        (RGBPrimaries::PRO_PHOTO, WhitePoint::D50, RGBPrimaries::CIE_XYZ, WhitePoint::D65) => {
+        (RgbPrimaries::ProPhoto, WhitePoint::D50, RgbPrimaries::CieXyz, WhitePoint::D65) => {
             Some(PRO_PHOTO_D50_TO_CIE_XYZ_D65)
         }
-        (RGBPrimaries::PRO_PHOTO, WhitePoint::D50, RGBPrimaries::APPLE, WhitePoint::D65) => {
+        (RgbPrimaries::ProPhoto, WhitePoint::D50, RgbPrimaries::Apple, WhitePoint::D65) => {
             Some(PRO_PHOTO_D50_TO_APPLE_D65)
         }
-        (RGBPrimaries::PRO_PHOTO, WhitePoint::D50, RGBPrimaries::P3, WhitePoint::D60) => {
+        (RgbPrimaries::ProPhoto, WhitePoint::D50, RgbPrimaries::P3, WhitePoint::D60) => {
             Some(PRO_PHOTO_D50_TO_P3_D60)
         }
-        (RGBPrimaries::PRO_PHOTO, WhitePoint::D50, RGBPrimaries::P3, WhitePoint::P3_DCI) => {
+        (RgbPrimaries::ProPhoto, WhitePoint::D50, RgbPrimaries::P3, WhitePoint::P3Dci) => {
             Some(PRO_PHOTO_D50_TO_P3_P3_DCI)
         }
-        (RGBPrimaries::PRO_PHOTO, WhitePoint::D50, RGBPrimaries::P3, WhitePoint::D65) => {
+        (RgbPrimaries::ProPhoto, WhitePoint::D50, RgbPrimaries::P3, WhitePoint::D65) => {
             Some(PRO_PHOTO_D50_TO_P3_D65)
         }
-        (RGBPrimaries::PRO_PHOTO, WhitePoint::D50, RGBPrimaries::ADOBE_1998, WhitePoint::D65) => {
+        (RgbPrimaries::ProPhoto, WhitePoint::D50, RgbPrimaries::Adobe1998, WhitePoint::D65) => {
             Some(PRO_PHOTO_D50_TO_ADOBE_1998_D65)
         }
-        (RGBPrimaries::PRO_PHOTO, WhitePoint::D50, RGBPrimaries::ADOBE_WIDE, WhitePoint::D50) => {
+        (RgbPrimaries::ProPhoto, WhitePoint::D50, RgbPrimaries::AdobeWide, WhitePoint::D50) => {
             Some(PRO_PHOTO_D50_TO_ADOBE_WIDE_D50)
         }
-        (RGBPrimaries::APPLE, WhitePoint::D65, RGBPrimaries::BT_709, WhitePoint::D65) => {
+        (RgbPrimaries::Apple, WhitePoint::D65, RgbPrimaries::Bt709, WhitePoint::D65) => {
             Some(APPLE_D65_TO_BT_709_D65)
         }
-        (RGBPrimaries::APPLE, WhitePoint::D65, RGBPrimaries::BT_2020, WhitePoint::D65) => {
+        (RgbPrimaries::Apple, WhitePoint::D65, RgbPrimaries::Bt2020, WhitePoint::D65) => {
             Some(APPLE_D65_TO_BT_2020_D65)
         }
-        (RGBPrimaries::APPLE, WhitePoint::D65, RGBPrimaries::AP1, WhitePoint::D60) => {
+        (RgbPrimaries::Apple, WhitePoint::D65, RgbPrimaries::Ap1, WhitePoint::D60) => {
             Some(APPLE_D65_TO_AP1_D60)
         }
-        (RGBPrimaries::APPLE, WhitePoint::D65, RGBPrimaries::AP0, WhitePoint::D60) => {
+        (RgbPrimaries::Apple, WhitePoint::D65, RgbPrimaries::Ap0, WhitePoint::D60) => {
             Some(APPLE_D65_TO_AP0_D60)
         }
-        (RGBPrimaries::APPLE, WhitePoint::D65, RGBPrimaries::CIE_RGB, WhitePoint::E) => {
+        (RgbPrimaries::Apple, WhitePoint::D65, RgbPrimaries::CieRgb, WhitePoint::E) => {
             Some(APPLE_D65_TO_CIE_RGB_E)
         }
-        (RGBPrimaries::APPLE, WhitePoint::D65, RGBPrimaries::CIE_XYZ, WhitePoint::D65) => {
+        (RgbPrimaries::Apple, WhitePoint::D65, RgbPrimaries::CieXyz, WhitePoint::D65) => {
             Some(APPLE_D65_TO_CIE_XYZ_D65)
         }
-        (RGBPrimaries::APPLE, WhitePoint::D65, RGBPrimaries::PRO_PHOTO, WhitePoint::D50) => {
+        (RgbPrimaries::Apple, WhitePoint::D65, RgbPrimaries::ProPhoto, WhitePoint::D50) => {
             Some(APPLE_D65_TO_PRO_PHOTO_D50)
         }
-        (RGBPrimaries::APPLE, WhitePoint::D65, RGBPrimaries::P3, WhitePoint::D60) => {
+        (RgbPrimaries::Apple, WhitePoint::D65, RgbPrimaries::P3, WhitePoint::D60) => {
             Some(APPLE_D65_TO_P3_D60)
         }
-        (RGBPrimaries::APPLE, WhitePoint::D65, RGBPrimaries::P3, WhitePoint::P3_DCI) => {
+        (RgbPrimaries::Apple, WhitePoint::D65, RgbPrimaries::P3, WhitePoint::P3Dci) => {
             Some(APPLE_D65_TO_P3_P3_DCI)
         }
-        (RGBPrimaries::APPLE, WhitePoint::D65, RGBPrimaries::P3, WhitePoint::D65) => {
+        (RgbPrimaries::Apple, WhitePoint::D65, RgbPrimaries::P3, WhitePoint::D65) => {
             Some(APPLE_D65_TO_P3_D65)
         }
-        (RGBPrimaries::APPLE, WhitePoint::D65, RGBPrimaries::ADOBE_1998, WhitePoint::D65) => {
+        (RgbPrimaries::Apple, WhitePoint::D65, RgbPrimaries::Adobe1998, WhitePoint::D65) => {
             Some(APPLE_D65_TO_ADOBE_1998_D65)
         }
-        (RGBPrimaries::APPLE, WhitePoint::D65, RGBPrimaries::ADOBE_WIDE, WhitePoint::D50) => {
+        (RgbPrimaries::Apple, WhitePoint::D65, RgbPrimaries::AdobeWide, WhitePoint::D50) => {
             Some(APPLE_D65_TO_ADOBE_WIDE_D50)
         }
-        (RGBPrimaries::P3, WhitePoint::D60, RGBPrimaries::BT_709, WhitePoint::D65) => {
+        (RgbPrimaries::P3, WhitePoint::D60, RgbPrimaries::Bt709, WhitePoint::D65) => {
             Some(P3_D60_TO_BT_709_D65)
         }
-        (RGBPrimaries::P3, WhitePoint::D60, RGBPrimaries::BT_2020, WhitePoint::D65) => {
+        (RgbPrimaries::P3, WhitePoint::D60, RgbPrimaries::Bt2020, WhitePoint::D65) => {
             Some(P3_D60_TO_BT_2020_D65)
         }
-        (RGBPrimaries::P3, WhitePoint::D60, RGBPrimaries::AP1, WhitePoint::D60) => {
+        (RgbPrimaries::P3, WhitePoint::D60, RgbPrimaries::Ap1, WhitePoint::D60) => {
             Some(P3_D60_TO_AP1_D60)
         }
-        (RGBPrimaries::P3, WhitePoint::D60, RGBPrimaries::AP0, WhitePoint::D60) => {
+        (RgbPrimaries::P3, WhitePoint::D60, RgbPrimaries::Ap0, WhitePoint::D60) => {
             Some(P3_D60_TO_AP0_D60)
         }
-        (RGBPrimaries::P3, WhitePoint::D60, RGBPrimaries::CIE_RGB, WhitePoint::E) => {
+        (RgbPrimaries::P3, WhitePoint::D60, RgbPrimaries::CieRgb, WhitePoint::E) => {
             Some(P3_D60_TO_CIE_RGB_E)
         }
-        (RGBPrimaries::P3, WhitePoint::D60, RGBPrimaries::CIE_XYZ, WhitePoint::D65) => {
+        (RgbPrimaries::P3, WhitePoint::D60, RgbPrimaries::CieXyz, WhitePoint::D65) => {
             Some(P3_D60_TO_CIE_XYZ_D65)
         }
-        (RGBPrimaries::P3, WhitePoint::D60, RGBPrimaries::PRO_PHOTO, WhitePoint::D50) => {
+        (RgbPrimaries::P3, WhitePoint::D60, RgbPrimaries::ProPhoto, WhitePoint::D50) => {
             Some(P3_D60_TO_PRO_PHOTO_D50)
         }
-        (RGBPrimaries::P3, WhitePoint::D60, RGBPrimaries::APPLE, WhitePoint::D65) => {
+        (RgbPrimaries::P3, WhitePoint::D60, RgbPrimaries::Apple, WhitePoint::D65) => {
             Some(P3_D60_TO_APPLE_D65)
         }
-        (RGBPrimaries::P3, WhitePoint::D60, RGBPrimaries::P3, WhitePoint::P3_DCI) => {
+        (RgbPrimaries::P3, WhitePoint::D60, RgbPrimaries::P3, WhitePoint::P3Dci) => {
             Some(P3_D60_TO_P3_P3_DCI)
         }
-        (RGBPrimaries::P3, WhitePoint::D60, RGBPrimaries::P3, WhitePoint::D65) => {
+        (RgbPrimaries::P3, WhitePoint::D60, RgbPrimaries::P3, WhitePoint::D65) => {
             Some(P3_D60_TO_P3_D65)
         }
-        (RGBPrimaries::P3, WhitePoint::D60, RGBPrimaries::ADOBE_1998, WhitePoint::D65) => {
+        (RgbPrimaries::P3, WhitePoint::D60, RgbPrimaries::Adobe1998, WhitePoint::D65) => {
             Some(P3_D60_TO_ADOBE_1998_D65)
         }
-        (RGBPrimaries::P3, WhitePoint::D60, RGBPrimaries::ADOBE_WIDE, WhitePoint::D50) => {
+        (RgbPrimaries::P3, WhitePoint::D60, RgbPrimaries::AdobeWide, WhitePoint::D50) => {
             Some(P3_D60_TO_ADOBE_WIDE_D50)
         }
-        (RGBPrimaries::P3, WhitePoint::P3_DCI, RGBPrimaries::BT_709, WhitePoint::D65) => {
+        (RgbPrimaries::P3, WhitePoint::P3Dci, RgbPrimaries::Bt709, WhitePoint::D65) => {
             Some(P3_P3_DCI_TO_BT_709_D65)
         }
-        (RGBPrimaries::P3, WhitePoint::P3_DCI, RGBPrimaries::BT_2020, WhitePoint::D65) => {
+        (RgbPrimaries::P3, WhitePoint::P3Dci, RgbPrimaries::Bt2020, WhitePoint::D65) => {
             Some(P3_P3_DCI_TO_BT_2020_D65)
         }
-        (RGBPrimaries::P3, WhitePoint::P3_DCI, RGBPrimaries::AP1, WhitePoint::D60) => {
+        (RgbPrimaries::P3, WhitePoint::P3Dci, RgbPrimaries::Ap1, WhitePoint::D60) => {
             Some(P3_P3_DCI_TO_AP1_D60)
         }
-        (RGBPrimaries::P3, WhitePoint::P3_DCI, RGBPrimaries::AP0, WhitePoint::D60) => {
+        (RgbPrimaries::P3, WhitePoint::P3Dci, RgbPrimaries::Ap0, WhitePoint::D60) => {
             Some(P3_P3_DCI_TO_AP0_D60)
         }
-        (RGBPrimaries::P3, WhitePoint::P3_DCI, RGBPrimaries::CIE_RGB, WhitePoint::E) => {
+        (RgbPrimaries::P3, WhitePoint::P3Dci, RgbPrimaries::CieRgb, WhitePoint::E) => {
             Some(P3_P3_DCI_TO_CIE_RGB_E)
         }
-        (RGBPrimaries::P3, WhitePoint::P3_DCI, RGBPrimaries::CIE_XYZ, WhitePoint::D65) => {
+        (RgbPrimaries::P3, WhitePoint::P3Dci, RgbPrimaries::CieXyz, WhitePoint::D65) => {
             Some(P3_P3_DCI_TO_CIE_XYZ_D65)
         }
-        (RGBPrimaries::P3, WhitePoint::P3_DCI, RGBPrimaries::PRO_PHOTO, WhitePoint::D50) => {
+        (RgbPrimaries::P3, WhitePoint::P3Dci, RgbPrimaries::ProPhoto, WhitePoint::D50) => {
             Some(P3_P3_DCI_TO_PRO_PHOTO_D50)
         }
-        (RGBPrimaries::P3, WhitePoint::P3_DCI, RGBPrimaries::APPLE, WhitePoint::D65) => {
+        (RgbPrimaries::P3, WhitePoint::P3Dci, RgbPrimaries::Apple, WhitePoint::D65) => {
             Some(P3_P3_DCI_TO_APPLE_D65)
         }
-        (RGBPrimaries::P3, WhitePoint::P3_DCI, RGBPrimaries::P3, WhitePoint::D60) => {
+        (RgbPrimaries::P3, WhitePoint::P3Dci, RgbPrimaries::P3, WhitePoint::D60) => {
             Some(P3_P3_DCI_TO_P3_D60)
         }
-        (RGBPrimaries::P3, WhitePoint::P3_DCI, RGBPrimaries::P3, WhitePoint::D65) => {
+        (RgbPrimaries::P3, WhitePoint::P3Dci, RgbPrimaries::P3, WhitePoint::D65) => {
             Some(P3_P3_DCI_TO_P3_D65)
         }
-        (RGBPrimaries::P3, WhitePoint::P3_DCI, RGBPrimaries::ADOBE_1998, WhitePoint::D65) => {
+        (RgbPrimaries::P3, WhitePoint::P3Dci, RgbPrimaries::Adobe1998, WhitePoint::D65) => {
             Some(P3_P3_DCI_TO_ADOBE_1998_D65)
         }
-        (RGBPrimaries::P3, WhitePoint::P3_DCI, RGBPrimaries::ADOBE_WIDE, WhitePoint::D50) => {
+        (RgbPrimaries::P3, WhitePoint::P3Dci, RgbPrimaries::AdobeWide, WhitePoint::D50) => {
             Some(P3_P3_DCI_TO_ADOBE_WIDE_D50)
         }
-        (RGBPrimaries::P3, WhitePoint::D65, RGBPrimaries::BT_709, WhitePoint::D65) => {
+        (RgbPrimaries::P3, WhitePoint::D65, RgbPrimaries::Bt709, WhitePoint::D65) => {
             Some(P3_D65_TO_BT_709_D65)
         }
-        (RGBPrimaries::P3, WhitePoint::D65, RGBPrimaries::BT_2020, WhitePoint::D65) => {
+        (RgbPrimaries::P3, WhitePoint::D65, RgbPrimaries::Bt2020, WhitePoint::D65) => {
             Some(P3_D65_TO_BT_2020_D65)
         }
-        (RGBPrimaries::P3, WhitePoint::D65, RGBPrimaries::AP1, WhitePoint::D60) => {
+        (RgbPrimaries::P3, WhitePoint::D65, RgbPrimaries::Ap1, WhitePoint::D60) => {
             Some(P3_D65_TO_AP1_D60)
         }
-        (RGBPrimaries::P3, WhitePoint::D65, RGBPrimaries::AP0, WhitePoint::D60) => {
+        (RgbPrimaries::P3, WhitePoint::D65, RgbPrimaries::Ap0, WhitePoint::D60) => {
             Some(P3_D65_TO_AP0_D60)
         }
-        (RGBPrimaries::P3, WhitePoint::D65, RGBPrimaries::CIE_RGB, WhitePoint::E) => {
+        (RgbPrimaries::P3, WhitePoint::D65, RgbPrimaries::CieRgb, WhitePoint::E) => {
             Some(P3_D65_TO_CIE_RGB_E)
         }
-        (RGBPrimaries::P3, WhitePoint::D65, RGBPrimaries::CIE_XYZ, WhitePoint::D65) => {
+        (RgbPrimaries::P3, WhitePoint::D65, RgbPrimaries::CieXyz, WhitePoint::D65) => {
             Some(P3_D65_TO_CIE_XYZ_D65)
         }
-        (RGBPrimaries::P3, WhitePoint::D65, RGBPrimaries::PRO_PHOTO, WhitePoint::D50) => {
+        (RgbPrimaries::P3, WhitePoint::D65, RgbPrimaries::ProPhoto, WhitePoint::D50) => {
             Some(P3_D65_TO_PRO_PHOTO_D50)
         }
-        (RGBPrimaries::P3, WhitePoint::D65, RGBPrimaries::APPLE, WhitePoint::D65) => {
+        (RgbPrimaries::P3, WhitePoint::D65, RgbPrimaries::Apple, WhitePoint::D65) => {
             Some(P3_D65_TO_APPLE_D65)
         }
-        (RGBPrimaries::P3, WhitePoint::D65, RGBPrimaries::P3, WhitePoint::D60) => {
+        (RgbPrimaries::P3, WhitePoint::D65, RgbPrimaries::P3, WhitePoint::D60) => {
             Some(P3_D65_TO_P3_D60)
         }
-        (RGBPrimaries::P3, WhitePoint::D65, RGBPrimaries::P3, WhitePoint::P3_DCI) => {
+        (RgbPrimaries::P3, WhitePoint::D65, RgbPrimaries::P3, WhitePoint::P3Dci) => {
             Some(P3_D65_TO_P3_P3_DCI)
         }
-        (RGBPrimaries::P3, WhitePoint::D65, RGBPrimaries::ADOBE_1998, WhitePoint::D65) => {
+        (RgbPrimaries::P3, WhitePoint::D65, RgbPrimaries::Adobe1998, WhitePoint::D65) => {
             Some(P3_D65_TO_ADOBE_1998_D65)
         }
-        (RGBPrimaries::P3, WhitePoint::D65, RGBPrimaries::ADOBE_WIDE, WhitePoint::D50) => {
+        (RgbPrimaries::P3, WhitePoint::D65, RgbPrimaries::AdobeWide, WhitePoint::D50) => {
             Some(P3_D65_TO_ADOBE_WIDE_D50)
         }
-        (RGBPrimaries::ADOBE_1998, WhitePoint::D65, RGBPrimaries::BT_709, WhitePoint::D65) => {
+        (RgbPrimaries::Adobe1998, WhitePoint::D65, RgbPrimaries::Bt709, WhitePoint::D65) => {
             Some(ADOBE_1998_D65_TO_BT_709_D65)
         }
-        (RGBPrimaries::ADOBE_1998, WhitePoint::D65, RGBPrimaries::BT_2020, WhitePoint::D65) => {
+        (RgbPrimaries::Adobe1998, WhitePoint::D65, RgbPrimaries::Bt2020, WhitePoint::D65) => {
             Some(ADOBE_1998_D65_TO_BT_2020_D65)
         }
-        (RGBPrimaries::ADOBE_1998, WhitePoint::D65, RGBPrimaries::AP1, WhitePoint::D60) => {
+        (RgbPrimaries::Adobe1998, WhitePoint::D65, RgbPrimaries::Ap1, WhitePoint::D60) => {
             Some(ADOBE_1998_D65_TO_AP1_D60)
         }
-        (RGBPrimaries::ADOBE_1998, WhitePoint::D65, RGBPrimaries::AP0, WhitePoint::D60) => {
+        (RgbPrimaries::Adobe1998, WhitePoint::D65, RgbPrimaries::Ap0, WhitePoint::D60) => {
             Some(ADOBE_1998_D65_TO_AP0_D60)
         }
-        (RGBPrimaries::ADOBE_1998, WhitePoint::D65, RGBPrimaries::CIE_RGB, WhitePoint::E) => {
+        (RgbPrimaries::Adobe1998, WhitePoint::D65, RgbPrimaries::CieRgb, WhitePoint::E) => {
             Some(ADOBE_1998_D65_TO_CIE_RGB_E)
         }
-        (RGBPrimaries::ADOBE_1998, WhitePoint::D65, RGBPrimaries::CIE_XYZ, WhitePoint::D65) => {
+        (RgbPrimaries::Adobe1998, WhitePoint::D65, RgbPrimaries::CieXyz, WhitePoint::D65) => {
             Some(ADOBE_1998_D65_TO_CIE_XYZ_D65)
         }
-        (RGBPrimaries::ADOBE_1998, WhitePoint::D65, RGBPrimaries::PRO_PHOTO, WhitePoint::D50) => {
+        (RgbPrimaries::Adobe1998, WhitePoint::D65, RgbPrimaries::ProPhoto, WhitePoint::D50) => {
             Some(ADOBE_1998_D65_TO_PRO_PHOTO_D50)
         }
-        (RGBPrimaries::ADOBE_1998, WhitePoint::D65, RGBPrimaries::APPLE, WhitePoint::D65) => {
+        (RgbPrimaries::Adobe1998, WhitePoint::D65, RgbPrimaries::Apple, WhitePoint::D65) => {
             Some(ADOBE_1998_D65_TO_APPLE_D65)
         }
-        (RGBPrimaries::ADOBE_1998, WhitePoint::D65, RGBPrimaries::P3, WhitePoint::D60) => {
+        (RgbPrimaries::Adobe1998, WhitePoint::D65, RgbPrimaries::P3, WhitePoint::D60) => {
             Some(ADOBE_1998_D65_TO_P3_D60)
         }
-        (RGBPrimaries::ADOBE_1998, WhitePoint::D65, RGBPrimaries::P3, WhitePoint::P3_DCI) => {
+        (RgbPrimaries::Adobe1998, WhitePoint::D65, RgbPrimaries::P3, WhitePoint::P3Dci) => {
             Some(ADOBE_1998_D65_TO_P3_P3_DCI)
         }
-        (RGBPrimaries::ADOBE_1998, WhitePoint::D65, RGBPrimaries::P3, WhitePoint::D65) => {
+        (RgbPrimaries::Adobe1998, WhitePoint::D65, RgbPrimaries::P3, WhitePoint::D65) => {
             Some(ADOBE_1998_D65_TO_P3_D65)
         }
-        (RGBPrimaries::ADOBE_1998, WhitePoint::D65, RGBPrimaries::ADOBE_WIDE, WhitePoint::D50) => {
+        (RgbPrimaries::Adobe1998, WhitePoint::D65, RgbPrimaries::AdobeWide, WhitePoint::D50) => {
             Some(ADOBE_1998_D65_TO_ADOBE_WIDE_D50)
         }
-        (RGBPrimaries::ADOBE_WIDE, WhitePoint::D50, RGBPrimaries::BT_709, WhitePoint::D65) => {
+        (RgbPrimaries::AdobeWide, WhitePoint::D50, RgbPrimaries::Bt709, WhitePoint::D65) => {
             Some(ADOBE_WIDE_D50_TO_BT_709_D65)
         }
-        (RGBPrimaries::ADOBE_WIDE, WhitePoint::D50, RGBPrimaries::BT_2020, WhitePoint::D65) => {
+        (RgbPrimaries::AdobeWide, WhitePoint::D50, RgbPrimaries::Bt2020, WhitePoint::D65) => {
             Some(ADOBE_WIDE_D50_TO_BT_2020_D65)
         }
-        (RGBPrimaries::ADOBE_WIDE, WhitePoint::D50, RGBPrimaries::AP1, WhitePoint::D60) => {
+        (RgbPrimaries::AdobeWide, WhitePoint::D50, RgbPrimaries::Ap1, WhitePoint::D60) => {
             Some(ADOBE_WIDE_D50_TO_AP1_D60)
         }
-        (RGBPrimaries::ADOBE_WIDE, WhitePoint::D50, RGBPrimaries::AP0, WhitePoint::D60) => {
+        (RgbPrimaries::AdobeWide, WhitePoint::D50, RgbPrimaries::Ap0, WhitePoint::D60) => {
             Some(ADOBE_WIDE_D50_TO_AP0_D60)
         }
-        (RGBPrimaries::ADOBE_WIDE, WhitePoint::D50, RGBPrimaries::CIE_RGB, WhitePoint::E) => {
+        (RgbPrimaries::AdobeWide, WhitePoint::D50, RgbPrimaries::CieRgb, WhitePoint::E) => {
             Some(ADOBE_WIDE_D50_TO_CIE_RGB_E)
         }
-        (RGBPrimaries::ADOBE_WIDE, WhitePoint::D50, RGBPrimaries::CIE_XYZ, WhitePoint::D65) => {
+        (RgbPrimaries::AdobeWide, WhitePoint::D50, RgbPrimaries::CieXyz, WhitePoint::D65) => {
             Some(ADOBE_WIDE_D50_TO_CIE_XYZ_D65)
         }
-        (RGBPrimaries::ADOBE_WIDE, WhitePoint::D50, RGBPrimaries::PRO_PHOTO, WhitePoint::D50) => {
+        (RgbPrimaries::AdobeWide, WhitePoint::D50, RgbPrimaries::ProPhoto, WhitePoint::D50) => {
             Some(ADOBE_WIDE_D50_TO_PRO_PHOTO_D50)
         }
-        (RGBPrimaries::ADOBE_WIDE, WhitePoint::D50, RGBPrimaries::APPLE, WhitePoint::D65) => {
+        (RgbPrimaries::AdobeWide, WhitePoint::D50, RgbPrimaries::Apple, WhitePoint::D65) => {
             Some(ADOBE_WIDE_D50_TO_APPLE_D65)
         }
-        (RGBPrimaries::ADOBE_WIDE, WhitePoint::D50, RGBPrimaries::P3, WhitePoint::D60) => {
+        (RgbPrimaries::AdobeWide, WhitePoint::D50, RgbPrimaries::P3, WhitePoint::D60) => {
             Some(ADOBE_WIDE_D50_TO_P3_D60)
         }
-        (RGBPrimaries::ADOBE_WIDE, WhitePoint::D50, RGBPrimaries::P3, WhitePoint::P3_DCI) => {
+        (RgbPrimaries::AdobeWide, WhitePoint::D50, RgbPrimaries::P3, WhitePoint::P3Dci) => {
             Some(ADOBE_WIDE_D50_TO_P3_P3_DCI)
         }
-        (RGBPrimaries::ADOBE_WIDE, WhitePoint::D50, RGBPrimaries::P3, WhitePoint::D65) => {
+        (RgbPrimaries::AdobeWide, WhitePoint::D50, RgbPrimaries::P3, WhitePoint::D65) => {
             Some(ADOBE_WIDE_D50_TO_P3_D65)
         }
-        (RGBPrimaries::ADOBE_WIDE, WhitePoint::D50, RGBPrimaries::ADOBE_1998, WhitePoint::D65) => {
+        (RgbPrimaries::AdobeWide, WhitePoint::D50, RgbPrimaries::Adobe1998, WhitePoint::D65) => {
             Some(ADOBE_WIDE_D50_TO_ADOBE_1998_D65)
         }
         _ => None,
